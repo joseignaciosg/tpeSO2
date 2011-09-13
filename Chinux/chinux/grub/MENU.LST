@@ -1,0 +1,13 @@
+#La entrada por defecto es la 0, ya que se puede poner mas de una entrada.
+default 0
+
+# Tiempo de espera de 2 segundos. Si el usuario no presiona una tecla GRUB 
+# ejecuta la entrada por default.
+
+timeout 5
+
+# Primera entrada
+
+title Chinux 
+kernel /boot/kernel.bin
+
