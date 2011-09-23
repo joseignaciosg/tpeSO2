@@ -179,13 +179,13 @@ _int_08_hand:			; Handler de INT 8 ( Timer tick)
 	pushad
 		mov eax, esp
 		push eax
-			call _SaveESP
+		call _SaveESP
 		pop eax
 		call _GetTemporaryESP
 		mov esp, eax
 		call _GetNextProcess
 		push eax
-			call _LoadESP
+		call _LoadESP
 		pop ebx
 		mov esp,eax
 		;call _debug;

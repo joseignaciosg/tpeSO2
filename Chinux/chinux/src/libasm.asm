@@ -89,7 +89,7 @@ _getCPUSpeed:
 		sti
 		ret
 
-_int_08_hand:				; Handler de INT 8 ( Timer tick)
+_int_08_hand:	    		; Handler de INT 8 ( Timer tick)
         push    ds
         push    es          ; Se salvan los registros
         pusha               ; Carga de DS y ES con el valor del selector

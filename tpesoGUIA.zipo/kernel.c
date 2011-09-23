@@ -150,7 +150,6 @@ void kmain(void)
 			CreateProcessAt("Shell 5",Shell,5,0,(char**)0,0x400,2,1);
 			CreateProcessAt("Shell 6",Shell,6,0,(char**)0,0x400,2,1);
 			CreateProcessAt("Shell 7",Shell,7,0,(char**)0,0x400,2,1);
-			
 		Sti();
 		while(1)
 		{
