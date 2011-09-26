@@ -46,6 +46,5 @@ getCPUSpeed(){
 		seconds = ticks*0.055;
 		ans += clock_cycles / seconds;
 	}
-	
 	return ans/simtimes;
 }

@@ -115,5 +115,12 @@ typedef struct {
   unsigned int size;
 }KEY_BUFFER;
 
+typedef struct
+{
+	char* terminal;
+	int movimiento;
+	KEY_BUFFER buffer;
+}TTY;
+
 #endif
 

@@ -24,7 +24,8 @@ PROCESS idle;
 static int nextPID=1;
 int CurrentPID=0;
 char stack[10][0x400];
-int print = 0;
+TTY terminals[4];
+enum ttyFocus {ONE=0, TWO=0, THREE=0, FOUR=0};
 
 void
 initializeIDT()

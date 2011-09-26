@@ -32,6 +32,7 @@ unsigned down_arrow_state = FALSE;
 extern int curpos;
 
 
+
 void
 initializeKeyBuffer(){
 	keybuffer.actual_char = BUFFER_SIZE-1;
