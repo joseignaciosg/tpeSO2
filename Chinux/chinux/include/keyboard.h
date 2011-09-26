@@ -1,53 +1,56 @@
-/*************************************************************************
- *  utils.h
- *  Keyboard Handling Functions
- *  	Galindo, Jose Ignacio
- *  	Homovc, Federico
- *		Reznik, Luciana
- *		ITBA 2011
+/***************************************************
+*  utils.h
+*  Keyboard Handling Functions
+*  	Galindo, Jose Ignacio
+*  	Homovc, Federico
+*	Reznik, Luciana
+*		ITBA 2011
+*
+****************************************************/
+
+
+/*
+ * inb
  *
- *************************************************************************/
+ * Is called by  _int_09_hander each time a keyboard interrupt
+ * comes across.
+ * Returns the make and the break code of the pressed key.
+ */
+static inline unsigned char inb( unsigned short port );
 
-/*************************************************************************
- Key Buffer initialization
- ************************************************************************/
-void initializeKeyBuffer();
-
-/************************************************************************
- *readKeyboard
- *
- *Reads a buffer of count size from keyboard and puts it on the keybuffer
- ************************************************************************/
-void readKeyboard(char* buffer, size_t count);
-
-/************************************************************************
- * clearBuddcopy
- *
- * Fills with zeros the buffcopy global char array
- ***********************************************************************/
-void clearBuffcopy(void);
-
-/***********************************************************************
- * deleteCharFromBUff
- *
- * erases a char from the keybuffer and the screen
- *********************************************************************/
-void deleteCharFromBuff();
-
-/**********************************************************************
- * addCharToBuff
- *
- * adds a char to the keybuffer and actualize the position of
- * actual_char and the size of the keybuffer
- *********************************************************************/
-int addCharToBuff(char c);
-
-/**********************************************************************
+/*
  * int_09
  *
  * Each time a interrupt from IRO1 (keyboard) comes across, it
- * selects the correct ascii value and it fills the keyboard
+ * selects the correct asci value and it fills the keyboard
  * buffer with it.
  *
- **********************************************************************/
+ */
 void int_09();
+
+/*
+ * getInstruction
+ *
+ * Copies the ketboard buffer into buffcopy global char array
+ * and comletes it with a -1
+ */
+void getInstruction(void);
+
+/*
+ * clearBuddcopy
+ *
+ * Fills with ceros the buffcopy globar char array
+ */
+void clearBuffcopy(void);
+
+/*
+ * buffcopy - DEPRECATED
+ *
+ * copies the actual keyboard buffer to the globlal char array buffcopy
+ * */
+void buffercopy();
+
+void initializeKeyBuffer();
+
+void readKeyboard(char* buffer, size_t count);
+

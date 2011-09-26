@@ -11,4 +11,5 @@ gcc -c ../src/keyboard.c -o keyboard.o -fno-builtin
 gcc -c ../src/timertick.c -o timertick.o -fno-builtin
 gcc -c ../src/stdio.c -o stdio.o -fno-builtin
 gcc -c ../src/utils.c -o utils.o -fno-builtin
-ld -T ../src/link.ld -o kernel.bin kernel.o utils.o stdio.o kstart.o video.o timertick.o keyboard.o tests.o libasm.o shell.o
+gcc -c ../src/scheduler.c -o scheduler.o -fno-builtin
+ld -T ../src/link.ld -o kernel.bin kstart.o kernel.o utils.o stdio.o video.o timertick.o keyboard.o tests.o libasm.o shell.o scheduler.o

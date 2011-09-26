@@ -8,13 +8,14 @@
 *
 ***********************************/
 
-/***	Project Includes	***/
+/***	Proyect Includes	***/
 #include "../include/defs.h"
 #include "../include/utils.h"
 #include "../include/stdio.h"
 
 char string_number[MAX_NUM];
 
+/* str_len dimension de un string */
 int
 str_len(char *s) {
 	int i;
@@ -24,7 +25,7 @@ str_len(char *s) {
 	return i;
 }
 
-
+/* reverse:  reverse string s in place */
 void
 reverse(char s[]) {
 	int i, j;
@@ -39,6 +40,7 @@ reverse(char s[]) {
 	return;
 }
 
+/* compares two strings */
 int
 strcmp(char * s1, char * s2) {
 	unsigned int i = 0;
@@ -56,7 +58,9 @@ strcmp(char * s1, char * s2) {
 	return FALSE;
 }
 
-
+/* 
+ * copies two strings 
+ */
 void
 strcopy(char * copy , char * s, int size) {
 	unsigned int i = 0;
@@ -68,7 +72,9 @@ strcopy(char * copy , char * s, int size) {
 	return;
 }
 
-
+/*
+ * converts an integer to string
+ */
 int
 itoa(int n) {
 	int i = 0, sign = FALSE;
@@ -93,7 +99,6 @@ itoa(int n) {
 	reverse(string_number);
 	return printstr(string_number);
 }
-
 
 
 int
@@ -122,7 +127,9 @@ ltoa(unsigned long int n) {
 }
 
 
-
+/*
+ * converts a double to string			
+ */
 int
 ftoa(double n) {
 	int i, j, MAX_DEC, sign;

@@ -1,64 +1,51 @@
 /********************************** 
- *
- *  timertick.c
- *  	Galindo, Jose Ignacio
- *  	Homovc, Federico
- *		Reznik, Luciana
- *		ITBA 2011
- *
- ***********************************/
+*
+*  timertick.c
+*  	Galindo, Jose Ignacio
+*  	Homovc, Federico
+*	Reznik, Luciana
+*		ITBA 2011
+*
+***********************************/
 
-/***	Project Includes	***/
+/***	Proyect Includes	***/
 #include "../include/kasm.h"
 #include "../include/defs.h"
 #include "../include/timertick.h"
+//#include "../include/utils.h"
+//#include "../include/kernel.h"
+//#include "../include/shell.h"
+//#include "../include/video.h"
+//#include "../include/kc.h"
+//#include "../include/stdio.h"
+
 
 unsigned int timestick = 0;
 unsigned int tickswait = 0;
 
-void
-int_08() {
-	timestick++;
-	tickswait++;
+void int_08()
+{
+     timestick++;
+     tickswait++;
 }
 
+
 unsigned long int
-getSpeedWay1() {
+getCPUSpeed(){
 	unsigned long int clock_cycles;
 	double seconds;
-	unsigned long int ticks = timestick;
-	clock_cycles = _getCPUSpeed();
-	unsigned int times = 0;
-	while (times < (1024 * 1024 * 100)) {
-		times++;
+	unsigned long int ticks=0;
+	unsigned long int ans;
+	int simtimes =0;
+	for ( ;simtimes < 20 ; simtimes++ ){
+		timestick = 0;
+		clock_cycles = _getCPUSpeed(); /*returns quantity of clock cycles */
+		wait(0.1);
+		ticks = timestick;
+		clock_cycles = _getCPUSpeed() - clock_cycles;
+		seconds = ticks*0.055;
+		ans += clock_cycles / seconds;
 	}
-	ticks = timestick - ticks;
-	clock_cycles = _getCPUSpeed() - clock_cycles;
-	seconds = ticks * 0.055;
-	return clock_cycles / seconds;
-}
-
-unsigned long int
-getSpeedWay2(int times) {
-	unsigned long int clock_cycles;
-	double seconds;
-	unsigned long int ticks = timestick;
-	clock_cycles = _getCPUSpeed();
-	while (timestick - ticks < times)
-		;
-	ticks = timestick - ticks;
-	clock_cycles = _getCPUSpeed() - clock_cycles;
-	seconds = ticks * 0.055;
-	return clock_cycles / seconds;
-}
-
-unsigned long int
-getCPUSpeed() {
-	double ans = 0;
-	ans += (double) getSpeedWay1() / (1024 * 1024);
-	ans += (double) getSpeedWay1() / (1024 * 1024);
-	ans += (double) getSpeedWay2(8) / (1024 * 1024);
-	ans += (double) getSpeedWay2(12) / (1024 * 1024);
-
-	return ans / 4;
+	
+	return ans/simtimes;
 }

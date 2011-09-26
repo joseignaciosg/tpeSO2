@@ -15,6 +15,16 @@ EXTERN  int_09 ;modified
 EXTERN  int_80
 
 
+EXTERN backuper
+EXTERN Schedule 
+EXTERN ExecuteProcess
+EXTERN LoadESP
+EXTERN SaveESP
+EXTERN GetTemporaryESP
+EXTERN GetNextProcess
+EXTERN isTimeSlot
+
+
 SECTION .text
 
 
@@ -60,15 +70,18 @@ _lidt:				; Carga el IDTR
 
 
 _inport:
+	cli
 		push ebp
 		mov ebp,esp
 		mov dx, [ss:ebp+8]
 		in  al,dx
 		mov esp,ebp
 		pop ebp
+	sti
 		ret
 
 _export:
+	cli
 		push ebp
 		mov ebp,esp
 		mov dx,[ss:ebp+8]
@@ -76,54 +89,71 @@ _export:
 		out dx,al
 		mov esp, ebp
 		pop ebp
+	sti
 		ret
 
-_getCPUSpeed:
-		cli
+_getCPUSpeed: ; http://www.rohitab.com/discuss/topic/26562-get-cpu-speed-in-asm/
 		push ebp
 		mov ebp,esp
 		rdtsc
 		;mov ebx,eax
 		mov esp,ebp
 		pop ebp
-		sti
 		ret
 
-_int_08_hand:	    		; Handler de INT 8 ( Timer tick)
-        push    ds
-        push    es          ; Se salvan los registros
-        pusha               ; Carga de DS y ES con el valor del selector
-        mov     ax, 10h	    ; a utilizar.
-        mov     ds, ax
-        mov     es, ax
-        call    int_08
-        mov	    al,20h			; Envio de EOI generico al PIC
-		out	    20h,al
-	    popa
-        pop     es
-        pop     ds
-        iret
+_int_08_hand:				; Handler de INT 8 ( Timer tick)
+        cli
+	pushad
+		call isTimeSlot
+		cmp eax, 0
+		jne noprocess
+		mov eax, esp
+		push eax
+			call SaveESP
+		pop eax
+		call GetTemporaryESP
+		mov esp, eax
+		call GetNextProcess
+		push eax
+			call LoadESP
+		pop ebx
+		mov esp,eax
+
+	noprocess:	popad
+	
+	mov al,20h			; Envio de EOI generico al PIC
+	out 20h,al
+	
+	sti
+	
+	iret
 
 _int_09_hand:      ;Handler de INT 09 (IN y OUT)
-      push    ds
-      push    es    ; Se salvan los registros
-      pusha         ; Carga de DS y ES con el valor del selector
+      cli
 
-      mov     ax, 10h	; a utilizar.
+      push    ds
+      push    es                      ; Se salvan los registros
+      pusha                           ; Carga de DS y ES con el valor del selector
+
+      mov     ax, 10h			; a utilizar.
       mov     ds, ax
       mov     es, ax
 
       call    int_09
-      mov     al,20h	; Envio de EOI generico al PIC
+      mov     al,20h			; Envio de EOI generico al PIC
       out     20h,al
       popa
       pop     es
       pop     ds
+
+      sti
+
       iret
 
 
 
 _int_80_caller:
+	cli
 	  push	ebp
    	  mov	ebp,esp
    	  pusha
@@ -137,14 +167,17 @@ _int_80_caller:
 	  popa
 	  mov	esp,ebp
 	  pop	ebp
+	sti
 	  ret
 
 
 _int_80_hand:      ;Handler de INT 80
 	  cli
+      ;push	ebp
+   	  ;mov	ebp,esp
    	  push    ds
-      push    es          ; Se salvan los registros
-      pusha               ; Carga de DS y ES con el valor del selector
+      push    es                      ; Se salvan los registros
+      pusha                           ; Carga de DS y ES con el valor del selector
   	  push   edx ;count
   	  push   ecx ;buffer
   	  push   ebx ;fd
@@ -166,11 +199,7 @@ _int_80_hand:      ;Handler de INT 80
       iret
 
 
-
-
-
-; Debug para el BOCHS, detiene la ejecución
-; Para continuar colocar en el BOCHSDBG: set $eax=0
+; Debug para el BOCHS, detiene la ejecución; Para continuar colocar en el BOCHSDBG: set $eax=0
 
 _debug:
         push    bp

@@ -1,14 +1,14 @@
-/**********************************
- *
- *  shell.c
- *  	Galindo, Jose Ignacio
- *  	Homovc, Federico
- *		Reznik, Luciana
- *		ITBA 2011
- *
- ***********************************/
+/********************************** 
+*
+*  shell.c
+*  	Galindo, Jose Ignacio
+*  	Homovc, Federico
+*	Reznik, Luciana
+*		ITBA 2011
+*
+***********************************/
 
-/***	Project Includes	***/
+/***	Proyect Includes	***/
 #include "../include/defs.h"
 #include "../include/shell.h"
 #include "../include/stdio.h"
@@ -20,40 +20,39 @@
 int scan_test = NOTSCAN;
 extern unsigned int curpos;
 char storedComm[STO_MAX][BUFFER_SIZE + 1];
-int sto_i = STO_MAX - 1;
-int sel_com = STO_MAX - 1;
+int sto_i = STO_MAX-1;
+int sel_com = STO_MAX-1;
 char arrow_pressed = FALSE;
 
-char
-* splash_screen[25] = {
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"            ..%%%%...%%..%%..%%%%%%..%%..%%..%%..%%..%%..%%.                   ",
-	"             .%%..%%..%%..%%....%%....%%%.%%..%%..%%...%%%%..                  ",
-	"              .%%......%%%%%%....%%....%%.%%%..%%..%%....%%...                 ",
-	"               .%%..%%..%%..%%....%%....%%..%%..%%..%%...%%%%..                ",
-	"                ..%%%%...%%..%%..%%%%%%..%%..%%...%%%%...%%..%%.               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               ",
-	"                                                                               "};
-
+char * splash_screen[25] = {
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"            ..%%%%...%%..%%..%%%%%%..%%..%%..%%..%%..%%..%%.                   ",
+"             .%%..%%..%%..%%....%%....%%%.%%..%%..%%...%%%%..                  ",
+"              .%%......%%%%%%....%%....%%.%%%..%%..%%....%%...                 ",
+"               .%%..%%..%%..%%....%%....%%..%%..%%..%%...%%%%..                ",
+"                ..%%%%...%%..%%..%%%%%%..%%..%%...%%%%...%%..%%.               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+"                                                                               ",
+};
 
 void
-printShellLine() {
+printShellLine()
+{
 	int i;
 	for (i = 0; i < SHELL_LINE_LENGTH; i++) {
 		putc(SHELL_LINE[i]);
@@ -61,9 +60,9 @@ printShellLine() {
 	return;
 }
 
-
 void
-showHelp() {
+showHelp()
+{
 	printf("help:          displays this message \n");
 	printf("clear:         clears screen \n");
 	printf("getCPUSpeed:   returns the clock speed of the processor \n");
@@ -75,48 +74,50 @@ showHelp() {
 	return;
 }
 
+
 void
 showSplashScreen() {
-	int i;
-	for (i = 0; i < 24; i++) {
-		printf("%s", splash_screen[i]);
-	}
+    int i;
+    for (i = 0; i < 24; i++) {
+        printf("%s",splash_screen[i]);
+    }
 	return;
 }
 
+
 void
-wait(int sec) {
+wait(double sec){
 	tickswait = 0;
-	while ((tickswait * 0.055) <= sec)
+	while ( (tickswait * 0.055 ) <= sec )
 		;
 	return;
 }
 
 void
-showLastCommand() {
+showLastCommand(){
 	int aux;
 	int size;
 	int i, k;
-	if (sel_com > 0) {
-		if (arrow_pressed) {
-			if (sel_com == STO_MAX - 1)
+	if ( sel_com > 0){
+		if ( arrow_pressed ){
+			if (sel_com == STO_MAX-1)
 				aux = 0;
 			else
 				aux = sel_com;
 			size = str_len(storedComm[aux]);
-			for (i = 0; i < size; i++) {
+			for (i = 0; i<size; i++ ){
 				deleteCharFromBuff();
 			}
 		}
-		if (keybuffer.array[0]) {
+		if( keybuffer.array[0] ){
 			size = keybuffer.size;
-			for (i = 0; i < size; i++) {
+			for(i = 0; i < size; i++){
 				deleteCharFromBuff();
 			}
 		}
 		sel_com--;
 		printf("%s", storedComm[sel_com]);
-		for (k = 0; k < str_len(storedComm[sel_com]); k++) {
+		for (k = 0; k < str_len(storedComm[sel_com]);k++){
 			addCharToBuff(storedComm[sel_com][k]);
 		}
 	}
@@ -127,28 +128,22 @@ showLastCommand() {
 }
 
 void
-showPreviousCommand() {
+showPreviousCommand(){
 	int aux;
 	int size;
 	int i, k;
-	if (sel_com < sto_i + 1) {
-		if (arrow_pressed) {
+	if ( sel_com < sto_i+1){
+		if ( arrow_pressed ){
 			aux = sel_com;
 			size = str_len(storedComm[aux]);
-			for (i = 0; i < size; i++) {
+			for (i = 0; i<size; i++ ){
 				deleteCharFromBuff();
-			}
-			if (keybuffer.array[0]) {
-				size = keybuffer.size;
-				for (i = 0; i < size; i++) {
-					deleteCharFromBuff();
-				}
 			}
 		}
 		sel_com++;
-		if (sel_com >= 0 && sel_com < STO_MAX && storedComm[sel_com][0]) {
+		if ( sel_com >= 0 && sel_com < STO_MAX && storedComm[sel_com][0] ){
 			printf("%s", storedComm[sel_com]);
-			for (k = 0; k < str_len(storedComm[sel_com]); k++) {
+			for (k = 0; k < str_len(storedComm[sel_com]); k++){
 				addCharToBuff(storedComm[sel_com][k]);
 			}
 		}
@@ -160,133 +155,138 @@ showPreviousCommand() {
 }
 
 void
-saveCommand() {
+saveCommand(){
 	int buffsize = keybuffer.size;
-	if (buffcopy[0]) {
-		if (sto_i == STO_MAX - 1)
+	if ( buffcopy[0]){
+		if ( sto_i == STO_MAX-1 )
 			sto_i = 0;
 		else
 			sto_i++;
-		sel_com = sto_i + 1;
-		strcopy(storedComm[sto_i], buffcopy, buffsize);
+		sel_com = sto_i+1;
+		strcopy(storedComm[sto_i],buffcopy, buffsize);
 	}
 
 	return;
 }
 
 void
-parseBuffer() {
+parseBuffer()
+{
 	int invalidcom = FALSE;
 	int cleared_screen = FALSE;
 	scan_test = NOTSCAN;
 
-	scanf("%s", buffcopy);
+	scanf("%s",buffcopy);
 
 	saveCommand();
 
-	if (strcmp("clear", buffcopy)) {
+	if( strcmp("clear", buffcopy)){
 		k_clear_screen();
 		cleared_screen = TRUE;
-	} else if (strcmp("scanint", buffcopy)) {
+	}else if( strcmp("scanint",buffcopy)){
 		scan_test = SCANINT;
 		putc('\n');
 		printf("Type an integer: ");
-	} else if (strcmp("scandouble", buffcopy)) {
+	}else if( strcmp("scandouble",buffcopy)){
 		scan_test = SCANDOUBLE;
 		putc('\n');
 		printf("Type a double: ");
-	} else if (strcmp("scanstring", buffcopy)) {
+	}else if( strcmp("scanstring",buffcopy)){
 		scan_test = SCANSTRING;
 		putc('\n');
 		printf("Type a string: ");
-	} else if (strcmp("printftest", buffcopy)) {
+	}else if(strcmp("printftest",buffcopy)){
 		putc('\n');
 		printfTest();
-	} else if (strcmp("getCPUSpeed", buffcopy)) {
+	}else if(strcmp("getCPUSpeed",buffcopy)){
 		putc('\n');
-		printf("CPU Speed: %ld  MHz", getCPUSpeed());
-	} else if (strcmp("help", buffcopy)) {
+		printf("CPU Speed: %ld  Hz", getCPUSpeed());
+	}else if(strcmp("help",buffcopy)){
 		putc('\n');
 		showHelp();
 		clearBuffcopy();
-	} else {
+	}else{
 		invalidcom = TRUE;
 	}
 
-	if (curpos > 80 * 24 * 2 && scan_test == NOTSCAN) {
+	if(curpos>80*24*2 && scan_test == NOTSCAN){
 		scrolldown();
-		if (invalidcom && buffcopy[0]) {
+		if ( invalidcom && buffcopy[0]){
 			invalidcom = FALSE;
 			printf("Invalid command: %s\n", buffcopy);
 		}
-	} else if (!cleared_screen) {
-		if (invalidcom && buffcopy[0]) {
+	}
+	else if(!cleared_screen){
+		if ( invalidcom && buffcopy[0]){
 			invalidcom = FALSE;
 			putc('\n');
 			printf("Invalid command: %s\n", buffcopy);
-		} else if (scan_test == NOTSCAN) {
+		}else if(scan_test == NOTSCAN){
 			putc('\n');
 		}
 	}
 
 	clearBuffcopy();
-
+	
 	return;
 }
 
 
 void
-shell() {
+shell(int argc, char* argv[])
+{
+	//_Sti();
 	printShellLine();
 	moveCursor();
-	while (TRUE) {
-		if (keypressed) {
+	while(TRUE)
+       	{
+		if ( keypressed ){
 			putc(keybuffer.array[keybuffer.actual_char]);
 			keypressed = FALSE;
-		} else if (up_arrow_state && scan_test == NOTSCAN) {
+		}else if( up_arrow_state && scan_test == NOTSCAN){
 			showLastCommand();
-		} else if (down_arrow_state && scan_test == NOTSCAN) {
+		}else if(down_arrow_state && scan_test == NOTSCAN){
 			showPreviousCommand();
-		} else if (enterpressed) {
+		}/*else if (enterpressed ){
 
-			switch (scan_test) {
-			case NOTSCAN:
-				parseBuffer();
-				arrow_pressed = FALSE;
-				if (!scan_test)
-					printShellLine();
-				break;
-			case SCANSTRING:
-				putc('\n');
-				scanStringTest();
-				scan_test = NOTSCAN;
-				clearBuffcopy();
-				printShellLine();
-				break;
-			case SCANINT:
-				putc('\n');
-				scanIntTest();
-				scan_test = NOTSCAN;
-				clearBuffcopy();
-				printShellLine();
-				break;
-			case SCANDOUBLE:
-				putc('\n');
-				scanDoubleTest();
-				scan_test = NOTSCAN;
-				clearBuffcopy();
-				printShellLine();
-				break;
-			}
-			keybuffer.first_char = keybuffer.actual_char + 1
-					% BUFFER_SIZE;
-			keybuffer.size = 0;
-			enterpressed = FALSE;
-		} else if (shift_state && ctrl_state && supr_state) {
-			reboot();
-		}
-		moveCursor();
+			switch( scan_test ){
+				 case NOTSCAN:
+					 parseBuffer();
+					 arrow_pressed = FALSE;
+					 if ( !scan_test )
+						 printShellLine();
+					 break;
+				 case SCANSTRING:
+					 putc('\n');
+					 scanStringTest();
+					 scan_test=NOTSCAN;
+					 clearBuffcopy();
+					 printShellLine();
+					 break;
+				 case SCANINT:
+					 putc('\n');
+					 scanIntTest();
+					 scan_test=NOTSCAN;
+					 clearBuffcopy();
+					 printShellLine();
+					 break;
+				 case SCANDOUBLE:
+					 putc('\n');
+					 scanDoubleTest();
+					 scan_test=NOTSCAN;
+					 clearBuffcopy();
+					 printShellLine();
+					 break;
+	    		}
+	    		keybuffer.first_char = keybuffer.actual_char + 1 % BUFFER_SIZE;
+	    		keybuffer.size = 0;
+	    		enterpressed = FALSE;
+	   	}*/else if ( alt_state && ctrl_state && supr_state){
+	   		reboot();
+	   	}
+	moveCursor();
 	}
 	return;
 }
+
 

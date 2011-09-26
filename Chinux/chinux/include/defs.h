@@ -1,7 +1,7 @@
 /***************************************************
- Defs.h
+  Defs.h
 
- ****************************************************/
+****************************************************/
 
 #ifndef _defs_
 #define _defs_
@@ -40,45 +40,80 @@ typedef short int ssize_t;
 #define ACS_INT_386 	0x0E		/* Interrupt GATE 32 bits */
 #define ACS_INT         ( ACS_PRESENT | ACS_INT_386 )
 
+
 #define ACS_CODE        (ACS_PRESENT | ACS_CSEG | ACS_READ) //el segmento de c�digo esta en memoria, y puede ser s�lo leido
 #define ACS_DATA        (ACS_PRESENT | ACS_DSEG | ACS_WRITE)// el segemento de c�digo esta en memoria y puede ser escrito
 #define ACS_STACK       (ACS_PRESENT | ACS_DSEG | ACS_WRITE)//el segmento de pila esta en memoria , y puede ser escrito
+
 #pragma pack (1) 		/* Alinear las siguiente estructuras a 1 byte */
 
 #define BUFFER_SIZE 256
 
 #define MAX_NUM 25		/*Maxima cantidad de digitos de un int*/
 
-/* Descriptor de segmento *///GDT
+#define MAX_PROCESS_NAME 20
+#define MAX_PRIORITY 4
+#define PRIORITY_RATIO 2
+#define TIMESLOT 10
+
+/* Descriptor de segmento */ //GDT
 typedef struct {
-	word limit, base_l;
-	byte base_m, access, //contiene ubicación, longitud y derechos
-			attribs, //ver pagina 35 libro brey
-			base_h;
+  word limit,
+       base_l;
+  byte base_m,
+       access,  //contiene ubicación, longitud y derechos
+       attribs, //ver pagina 35 libro brey
+       base_h;
 } DESCR_SEG;
+
 
 /* Descriptor de interrupcion */
 typedef struct {
-	word offset_l, selector;
-	byte cero, access;
-	word offset_h;
+  word      offset_l,
+            selector;
+  byte      cero,
+            access;
+  word	    offset_h;
 } DESCR_INT;
 
 /* IDTR  */
 typedef struct {
-	word limit;
-	dword base;
+  word  limit;
+  dword base;
 } IDTR;
 
-/*
- * Main structure for handling the keyboard
- */
+typedef struct PROCESS
+{
+	int pid;
+	char name [MAX_PROCESS_NAME];
+	int priority;
+	int tty;
+	int foreground;
+	int lastCalled;
+	int sleep;
+	int blocked;
+	int parent;
+	int ESP;
+	int free;
+	int stackstart;
+	int stacksize;
+
+} PROCESS;
+
+typedef struct
+{
+	int EDI, ESI, EBP, ESP, EBX, EDX, ECX, EAX,  EIP, CS, EFLAGS;
+	void*retaddr;
+	int argc;
+	char** argv;
+} STACK_FRAME;
+
 typedef struct {
-	char array[BUFFER_SIZE];
-	unsigned int actual_char;
-	unsigned int first_char;
-	unsigned int size;
-} KEY_BUFFER;
+  char array[BUFFER_SIZE];
+  unsigned int actual_char;
+  unsigned int first_char;
+  unsigned int size;
+}KEY_BUFFER;
 
 #endif
 

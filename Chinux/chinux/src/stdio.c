@@ -1,17 +1,18 @@
 /********************************** 
- *
- *  stdio.c
- *  	Galindo, Jose Ignacio
- *  	Homovc, Federico
- *		Reznik, Luciana
- *		ITBA 2011
- *
- ***********************************/
+*
+*  stdio.c
+*  	Galindo, Jose Ignacio
+*  	Homovc, Federico
+*	Reznik, Luciana
+*		ITBA 2011
+*
+***********************************/
 
-/***	Project Includes	***/
+/***	Proyect Includes	***/
 #include "../include/defs.h"
 #include "../include/utils.h"
 #include "../include/stdio.h"
+
 
 /***	System Includes		***/
 #include "stdarg.h"
@@ -20,112 +21,142 @@ extern KEY_BUFFER keybuffer;
 extern unsigned int timestick; //for timer tick
 extern char buffcopy[BUFFER_SIZE];
 
+
+
+/*
+*Prints a character into the standard output stream
+*/
 void
-putc(char c) {
+putc(char c)
+{
 	void *p = &c;
-	if (c == '\n')
+	if(c == '\n')
 		enter();
 	else
-		__write(WRITE, STDOUT, p, 1);
+		__write(STDOUT, p, 1);
 	return;
 }
 
+
+/*
+*Prints a string
+*/
 int
-printstr(char * s) {
+printstr( char * s)
+{
 	unsigned int i = 0;
-	while (s[i]) {
+	while ( s[i] )
+	{
 		putc(s[i++]);
 	}
 	return i;
 }
 
+
+/*
+*Erases a character
+*/
 void
-clearc(char c) {
+clearc(char c)
+{
 	void *p = &c;
-	__write(ERASE, STDOUT, p, 1);
+	__write(ERASE, p, 1);
 	return;
 }
 
 
-char getc() {
+/*
+*Gets a character from the keybuffer.
+*/
+char
+getc()
+{ //obtiene el primer char del keybuffer y "lo borra"
 	char c;
 	void *p = &c;
 	__read(STDIN, p, 1);
-	return *(char*) p;
+	return *(char*)p;
 }
 
 
-void int_80(size_t call, size_t fd, char *buffer, size_t count) {
-	unsigned int j = 0;
-	switch (call) {
-	case WRITE:
-		if (fd == STDOUT) {
-			writeScreen(buffer, count);
-		}
-		break;
 
-	case ERASE:
-		if (fd == STDOUT) {
-			eraseScreen(buffer, count);
-		}
-		break;
-	case READ:
-		if (fd == STDIN) {
-			readKeyboard(buffer, count);
-		}
-		break;
-	default:
-		break;
-	}
+void
+int_80(size_t call, size_t fd,  char *buffer, size_t count)
+{
+         unsigned int j =0;
+         switch (call){
+ 			case WRITE:
+ 				if ( fd == STDOUT )
+ 				{
+ 					writeScreen(buffer,count);
+ 				}
+ 				break;
+
+ 			case ERASE:
+ 				if ( fd == STDOUT )
+ 				{
+ 					eraseScreen(buffer,count);
+ 				}
+ 				break;
+ 			case READ:
+ 				if ( fd == STDIN ){
+					readKeyboard(buffer, count);
+ 				}
+ 				break;
+ 			default:
+ 				break;
+ 	}
 
 	return;
 }
 
-
+ /* Primitives for the IO system */
 size_t
-__write(size_t call, size_t fd, void* buffer, size_t count) {
-	switch (call) {
-	case WRITE:
-		if (fd == STDOUT){
-			_int_80_caller(WRITE, STDOUT, buffer, count);
-		}
-		break;
-	case ERASE:
-		if (fd == STDOUT){
-			_int_80_caller(ERASE, STDOUT, (char*) buffer, count);
-		}
-		break;
+__write(size_t fd, void* buffer, size_t count)
+{
+ 	if ( fd == STDOUT ){
+ 		_int_80_caller(WRITE,STDOUT, buffer , count );
+	}else if ( fd == ERASE ){
+		_int_80_caller(ERASE, STDOUT, (char*)buffer, count );
+	}else {
 	}
 
 	return count;
 }
 
 
+
 size_t
-__read(size_t fd, void* buffer, size_t count) {
-	if (fd == STDIN) {
-		_int_80_caller(READ, STDIN, (char*) buffer, count);
+__read(size_t fd, void* buffer, size_t count)
+{
+	if ( fd == STDIN )
+	{
+		_int_80_caller(READ,STDIN,(char*)buffer,count);
 	}
 	return count;
 }
 
 
+/*
+ * Converts, gives format, and prints its argument
+ * in STDOUT
+ */
 int
-printf(char * format, ...) {
+printf( char * format, ...){
 	int count = 0;
 	char *p;
 	va_list ap;
 	va_start(ap,format);
 
-	for (p = format; *p; p++) {
+	//_Cli();
+	for(p = format; *p; p++ ){
 		count++;
-		if (*p != '%') {
+		if ( *p != '%' ){
 			putc(*p);
 			continue;
 		}
-		switch (*++p) {
+		switch(*++p){
 		case 'l':
-			if (*(p + 1) == 'd') {
+			if( *(p+1) == 'd'){
 				count += ltoa(va_arg(ap, unsigned long int));
 				p++;
 			}
@@ -134,7 +165,7 @@ printf(char * format, ...) {
 			count += itoa(va_arg(ap,int));
 			break;
 		case 'f':
-			count += ftoa(va_arg(ap,double));
+		   	count += ftoa(va_arg(ap,double));
 			break;
 		case 's':
 			count += printstr(va_arg(ap,char*));
@@ -143,45 +174,51 @@ printf(char * format, ...) {
 	}
 
 	va_end(ap);
+	//_Sti();
 
 	return count;
 }
 
 
+/*
+ * Reads a number of arguments from STDIN with the given
+ * format and saves them in each of those arguments.
+ * Returns EOF
+ */
 int
-scanf(char* format, ...) {
+scanf(char* format, ...){
 	int count = 0;
 	char *p;
-	int i = 0;
+	int i=0;
 	va_list ap;
 	va_start(ap,format);
 	__read(STDIN, buffcopy, keybuffer.size);
-	for (p = format; *p; p++) {
-		if (*p != '%') {
-			continue;
+		for(p = format; *p; p++ ){
+			if ( *p != '%' ){
+				continue;
+			}
+			switch(*++p){
+			case 's':
+				count = scanfs(va_arg(ap,char*),buffcopy);
+				break;
+			case 'd':
+				count = scanfi(va_arg(ap,int*),buffcopy);
+				break;
+			case 'f':
+				count = scanfd(va_arg(ap,double*),buffcopy);
+				break;
+			}
 		}
-		switch (*++p) {
-		case 's':
-			count = scanfs(va_arg(ap,char*), buffcopy);
-			break;
-		case 'd':
-			count = scanfi(va_arg(ap,int*), buffcopy);
-			break;
-		case 'f':
-			count = scanfd(va_arg(ap,double*), buffcopy);
-			break;
-		}
-	}
-	va_end(ap);
+		va_end(ap);
 
-	return count;
+		return count;
 }
 
 
 int
-scanfs(char* dest, char* origin) {
-	int count;
-	for (count = 0; origin[count]; count++)
+scanfs(char* dest, char* origin){
+ 	int count;
+	for(count = 0; origin[count]; count++)
 		dest[count] = origin[count];
 	dest[count] = 0;
 
@@ -190,19 +227,19 @@ scanfs(char* dest, char* origin) {
 
 
 int
-scanfi(int* dest, char* origin) {
+scanfi(int* dest, char* origin){
 	int aux = 0, count, length, pow = 1, negative = FALSE, maxCount = 0;
-	if (origin[0] == '-') {
+	if( origin[0] == '-' ){
 		negative = TRUE;
 		maxCount = 1;
 	}
 	count = str_len(origin) - 1;
 	length = count;
-	for (; count >= maxCount; count--) {
+	for( ; count >= maxCount; count--){
 		aux += ((origin[count] - '0') * pow);
 		pow *= 10;
 	}
-	if (negative)
+	if(negative)
 		aux = -aux;
 	*(dest) = aux;
 
@@ -210,33 +247,34 @@ scanfi(int* dest, char* origin) {
 }
 
 
-int scanfd(double* dest, char* origin) {
+int
+scanfd(double* dest, char* origin){
 	int count, pointPos = 0, isDecimal = FALSE, negative = FALSE, maxCount = 0;
 	double aux = 0, pow = 1;
 
-	if (origin[0] == '-') {
-		negative = TRUE;
-		maxCount = 1;
+	if( origin[0] == '-' ){
+	negative = TRUE;
+	maxCount = 1;
 	}
 
-	while (origin[pointPos] && origin[pointPos] != '.') {
+	while(origin[pointPos] && origin[pointPos] != '.'){
 		++pointPos;
-		if (origin[pointPos] == '.')
+		if(origin[pointPos] == '.')
 			isDecimal = TRUE;
 	}
 
-	for (count = pointPos - 1; count >= maxCount; count--) {
+	for(count = pointPos -1; count >= maxCount; count--){
 		aux += ((origin[count] - '0') * pow);
 		pow *= 10;
 	}
-
+	
 	count = pointPos + 1;
 	pow = 0.1;
-	while (origin[count] && isDecimal) {
+	while(origin[count] && isDecimal){
 		aux += ((origin[count++] - '0') * pow);
 		pow /= 10;
 	}
-	if (negative)
+	if(negative)
 		aux = -aux;
 	*(dest) = aux;
 

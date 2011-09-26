@@ -8,7 +8,7 @@
 *
 ***********************************/
 
-/***	Project Includes	***/
+/***	Proyect Includes	***/
 #include "../include/defs.h"
 #include "../include/video.h"
 #include "../include/kc.h"
@@ -16,6 +16,44 @@
 /*points to the videoboard */
 char *vidmem = (char *) 0xb8000;
 unsigned int curpos = START_POS;
+
+
+void
+writeScreen(char* buffer, int count)
+{
+	int j=0;
+
+	while ( j < count )
+	{
+		if(curpos==80*25*2){
+			scrolldown();
+		}
+		vidmem[curpos] = buffer[j];
+		curpos++;
+		vidmem[curpos] = WHITE_TXT;
+		curpos++;
+		j++;
+	}
+	return;
+}
+
+
+void
+eraseScreen(char* buffer, int count)
+{
+	int j=0;
+	if (curpos > START_POS) {
+		while (j < count) {
+			curpos--;
+			curpos--;
+			vidmem[curpos] = buffer[j];
+			j++;
+		}
+	}
+	return;
+}
+
+
 
 void
 k_clear_screen()
@@ -32,49 +70,10 @@ k_clear_screen()
 	return;
 }
 
-
-void
-writeScreen(char* buffer, int count)
-{
-	int j = 0;
-
-	while ( j < count )
-	{
-		if(curpos == 80*25*2){
-			scrolldown();
-		}
-		vidmem[curpos] = buffer[j];
-		curpos++;
-		vidmem[curpos] = WHITE_TXT;
-		curpos++;
-		j++;
-	}
-	return;
-}
-
-
-void
-eraseScreen(char* buffer, int count)
-{
-	int j = 0;
-	if (curpos > START_POS) {
-		while (j < count) {
-			curpos--;
-			curpos--;
-			vidmem[curpos] = buffer[j];
-			j++;
-		}
-	}
-	return;
-}
-
-
-
-
 void
 scrolldown()
 {
-	unsigned int i = 0;
+	unsigned int i=0;
 	while(i < (80 * 2 * 25))
 	{
 		vidmem[i]=vidmem[i+80*2];
@@ -87,19 +86,16 @@ scrolldown()
 	return;
 }
 
-
 void
 enter()
 {
-	if(curpos > 80*24*2)
+	if(curpos>80*24*2)
 		scrolldown();
 	else
-		curpos += 80*2 - curpos%(80*2);
+		curpos+= 80*2- curpos%(80*2);
 
 	return;
 }
-
-
 
 void 
 moveCursor(){

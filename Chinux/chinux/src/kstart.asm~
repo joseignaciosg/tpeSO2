@@ -5,6 +5,7 @@
 ;Header para multiboot.
 ;******************************************************
 
+GLOBAL _inport;
 
 %include "../include/grub.inc"
 
