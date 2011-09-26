@@ -125,7 +125,7 @@ void SetupScheduler(void)
 	idle.blocked = 0;
 	idle.tty = 0;
 	idle.stackstart = (int)(&idleprocess);
-	idle.stacksize = 0x200;
+	idle.stacksize = 0x400;
 	procesos[i].parent = 0;
 	idle.lastCalled = 0;
 	idle.ESP=LoadStackFrame(Idle,0,0,(int)(idleprocess+0x1FF),Cleaner);

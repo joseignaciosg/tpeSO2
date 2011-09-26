@@ -77,10 +77,10 @@ kmain()      //   /usr/share/bochs/.bochsrc
 	initializeIDT();
 	unmaskPICS();
 	SetupScheduler();
-	/*CreateProcessAt("Teta 0",Teta,0,0,(char**)0,0x400,2,1);
+	CreateProcessAt("Teta 0",Teta,0,0,(char**)0,0x400,2,1);
 	CreateProcessAt("Teta 0",Teta1,0,0,(char**)0,0x400,2,1);
-	CreateProcessAt("Teta 0",Teta2,0,0,(char**)0,0x400,2,1);*/
-	CreateProcessAt("Teta 0",shell,0,0,(char**)0,0x400,2,1);
+	CreateProcessAt("Teta 0",Teta2,0,0,(char**)0,0x400,2,1);
+	//CreateProcessAt("Teta 0",shell,0,0,(char**)0,0x400,2,1);
 	_Sti();
 	while(1)
 		;	

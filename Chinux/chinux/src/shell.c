@@ -247,7 +247,7 @@ shell(int argc, char* argv[])
 			showLastCommand();
 		}else if(down_arrow_state && scan_test == NOTSCAN){
 			showPreviousCommand();
-		}/*else if (enterpressed ){
+		}else if (enterpressed ){
 
 			switch( scan_test ){
 				 case NOTSCAN:
@@ -281,7 +281,7 @@ shell(int argc, char* argv[])
 	    		keybuffer.first_char = keybuffer.actual_char + 1 % BUFFER_SIZE;
 	    		keybuffer.size = 0;
 	    		enterpressed = FALSE;
-	   	}*/else if ( alt_state && ctrl_state && supr_state){
+	   	}else if ( alt_state && ctrl_state && supr_state){
 	   		reboot();
 	   	}
 	moveCursor();
