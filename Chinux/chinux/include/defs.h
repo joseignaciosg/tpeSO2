@@ -117,9 +117,11 @@ typedef struct {
 
 typedef struct
 {
-	char* terminal;
+	char terminal[80 * 25 * 2];
 	int movimiento;
 	KEY_BUFFER buffer;
+	int uninit;
+	int curpos;
 }TTY;
 
 #endif

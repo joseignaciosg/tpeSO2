@@ -1,4 +1,4 @@
-|/**********************************
+/**********************************
 *
 *  Keyboard.c
 *  	Galindo, Jose Ignacio
@@ -30,8 +30,10 @@ unsigned supr_state = FALSE;
 unsigned up_arrow_state = FALSE;
 unsigned down_arrow_state = FALSE;
 extern int curpos;
+extern TTY terminals[4];
+extern int currentTTY;
 
-
+void memcpy(char* a, char* b, int len);
 
 void
 initializeKeyBuffer(){
@@ -176,6 +178,27 @@ void int_09() {
 		break;
 
 	default:
+
+
+		//if(new_scan_code>=0x3B && new_scan_code<=0x3E && alt_state) // entre F1 y F4
+		if(new_scan_code>=0x2 && new_scan_code<=0x5 && alt_state)
+		{
+			int nextTTY;
+			//nextTTY = new_scan_code - 0x3B;
+			nextTTY = new_scan_code - 0x2;
+			memcpy(terminals[currentTTY].terminal, (char*)0xb8000, 80 * 2 * 25);
+			memcpy((char*)0xb8000, terminals[nextTTY].terminal, 80 * 2 * 25);
+			terminals[currentTTY].curpos = curpos;
+			if(terminals[nextTTY].uninit)
+			{
+				curpos = 0;
+				printShellLine();
+				moveCursor();
+			}
+			currentTTY = nextTTY;
+			break;
+		}
+
 		/* Ignore the break code */
 		if(tablaShift[0][new_scan_code] == 0 && new_scan_code != 0x39) //0x39 = space makecode
 			break;
@@ -189,6 +212,16 @@ void int_09() {
 			keypressed = addCharToBuff(c);
 		}
 		break;
+	}
+	return;
+}
+
+void memcpy(char* a, char* b, int len)
+{
+	int i;
+	for(i = 0; i < len; i++)
+	{
+		a[i] = b[i];
 	}
 	return;
 }

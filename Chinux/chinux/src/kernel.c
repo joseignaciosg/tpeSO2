@@ -25,11 +25,15 @@ static int nextPID=1;
 int CurrentPID=0;
 char stack[10][0x400];
 TTY terminals[4];
-enum ttyFocus {ONE=0, TWO=0, THREE=0, FOUR=0};
+int currentTTY = 0;
+enum ttyFocus {ONE=0, TWO, THREE, FOUR};
 
 void
 initializeIDT()
 {
+	setup_IDT_entry (&idt[0x08], 0x08, (dword)&_int_08_hand, ACS_INT, 0);
+	setup_IDT_entry (&idt[0x09], 0x08, (dword)&_int_09_hand, ACS_INT, 0);
+	setup_IDT_entry (&idt[0x80], 0x08, (dword)&_int_80_hand, ACS_INT, 0);
 	idtr.base = 0;
 	idtr.base +=(dword) &idt;
 	idtr.limit = sizeof(idt)-1;
@@ -67,21 +71,32 @@ Starting point of the whole OS
 int
 kmain()      //   /usr/share/bochs/.bochsrc
 {
+	int i, j;
 	_Cli();
 	initializeKeyBuffer();
 	k_clear_screen();
 
-	setup_IDT_entry (&idt[0x08], 0x08, (dword)&_int_08_hand, ACS_INT, 0);
-	setup_IDT_entry (&idt[0x09], 0x08, (dword)&_int_09_hand, ACS_INT, 0);
-	setup_IDT_entry (&idt[0x80], 0x08, (dword)&_int_80_hand, ACS_INT, 0);
-
 	initializeIDT();
 	unmaskPICS();
 	SetupScheduler();
-	CreateProcessAt("Teta 0",Teta,0,0,(char**)0,0x400,2,1);
-	CreateProcessAt("Teta 0",Teta1,0,0,(char**)0,0x400,2,1);
-	CreateProcessAt("Teta 0",Teta2,0,0,(char**)0,0x400,2,1);
-	//CreateProcessAt("Teta 0",shell,0,0,(char**)0,0x400,2,1);
+	for(i = 0; i < 4; i++)
+	{
+		j = 0;
+		while(j < (80*25*2))
+		{
+			terminals[i].terminal[j]=' ';
+			j++;
+			terminals[i].terminal[j] = WHITE_TXT; //0x68
+			j++;
+		}
+		terminals[i].uninit = 1;
+	}
+	terminals[0].uninit = 0;
+	
+	//CreateProcessAt("Teta 0",(int(*)(int, char**))Teta,0,0,(char**)0,0x400,2,1); //tty0
+	//CreateProcessAt("Teta 0",(int(*)(int, char**))Teta1,1,0,(char**)0,0x400,2,1); //tty1
+	//CreateProcessAt("Teta 0",(int(*)(int, char**))Teta2,2,0,(char**)0,0x400,2,1); //tty2
+	CreateProcessAt("Teta 0",(int(*)(int, char**))shell,0,0,(char**)0,0x400,2,1);
 	_Sti();
 	while(1)
 		;	
