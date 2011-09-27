@@ -8,4 +8,3 @@ mcopy kernel.bin b:boot/ -o
 echo "---- Loading grub menue ----"
 cd ../grub
 mcopy MENU.LST b:boot/grub/MENU.LST -o
-
