@@ -1,0 +1,10 @@
+echo "---- Starting to compile ----"
+./compila
+
+echo "---- Copying Chinux Kernel to the image ----"
+cd ./bin
+mcopy kernel.bin b:boot/ -o
+
+echo "---- Loading grub menue ----"
+cd ../grub
+mcopy MENU.LST b:boot/grub/MENU.LST -o
