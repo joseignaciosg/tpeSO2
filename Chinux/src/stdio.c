@@ -25,11 +25,20 @@ extern TTY terminals[4];
 void
 putc(char c) {
 	void * p;
+	int i;
 	p = &c;
 	if (c == '\n')
 		enter();
+	else if(c == '\t')
+	{
+		c = ' ';
+		p = &c;
+		for(i = 0; i < 8; i++)
+			__write(WRITE, STDOUT, p, 1);
+	}
 	else
 		__write(WRITE, STDOUT, p, 1);
+	moveCursor();
 	return;
 }
 
@@ -118,7 +127,7 @@ printf(char * format, ...) {
 	char *p;
 	va_list ap;
 	
-	_Cli();
+	//_Cli();
 	va_start(ap,format);
 
 	for (p = format; *p; p++) {
@@ -147,7 +156,7 @@ printf(char * format, ...) {
 	}
 
 	va_end(ap);
-	_Sti();
+	//_Sti();
 
 	return count;
 }

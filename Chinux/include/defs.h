@@ -31,8 +31,11 @@
  * for scanf tests 
  */
 enum scan_test {
-	NOTSCAN = 0, SCANSTRING = 1, SCANINT = 2, SCANDOUBLE = 3
+	NOTSCAN = 0, SCANSTRING, SCANINT, SCANDOUBLE
 };
+
+enum  state{ RUNNING = 0, READY, BLOCKED};
+typedef enum state process_state;
 
 typedef int size_t;
 typedef short int ssize_t;
@@ -56,11 +59,9 @@ typedef short int ssize_t;
 
 #define MAX_NUM 25		/*Maxima cantidad de digitos de un int*/
 
-#define MAX_PROCESS_NAME 20
 #define MAX_PRIORITY 4
 #define PRIORITY_RATIO 2
-#define TIMESLOT 2
-#define PROCESS_QTTY 10
+#define TIMESLOT 3
 
 #define NULL 0
 
@@ -105,19 +106,17 @@ typedef struct
 
 typedef struct PROCESS
 {
+	process_state state;
 	int pid;
-	char name [MAX_PROCESS_NAME];
+	char * name;
 	int priority;
 	int tty;
 	int foreground;
-	int lastCalled;
-	int sleep;
-	int blocked;
 	int parent;
 	int ESP;
-	int free;
 	int stackstart;
 	int stacksize;
+	int waitingPid;
 
 } PROCESS;
 
@@ -126,7 +125,6 @@ typedef struct
 {
 	char terminal[80 * 25 * 2];
 	KEY_BUFFER buffer;
-	int uninit;
 	int curpos;
 	int PID;
 }TTY;
@@ -137,6 +135,11 @@ typedef struct{
 	PROCESS * process;
 	processList next;
 }processNode;
+
+typedef struct{
+	char name[20];
+	char password[20];
+}user;
 
 
 #endif

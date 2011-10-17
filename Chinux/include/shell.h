@@ -98,7 +98,7 @@ void saveCommand();
  *Parses the actual keyboard buffer and calls the
  *correct function to deal with it
  ********************************************************************/
-void parseBuffer();
+int parseBuffer();
 
 /*********************************************************************
  * shell

@@ -15,7 +15,6 @@ int counter100;
 int FirstTime = 1;
 extern int CurrentPID;
 extern PROCESS idle;
-extern PROCESS procesos[PROCESS_QTTY];
 extern processList ready;
 extern int roundRobin;
 
@@ -25,12 +24,8 @@ void SaveESP (int);
 PROCESS * GetNextProcess (void);
 PROCESS * GetNextTask(void);
 int LoadESP(PROCESS*);
-int NoProcesses(void);
 int isTimeSlot(void);
 void* GetTemporaryESP (void);
-
-char idleprocess[0x400];
-
 
 
 void* GetTemporaryESP (void)
@@ -40,6 +35,7 @@ void* GetTemporaryESP (void)
 
 int isTimeSlot()
 {
+	//printf("timeslot:%d", timeslot);
 	if(--timeslot)
 		return timeslot;
 	timeslot = TIMESLOT;
@@ -54,6 +50,8 @@ void SaveESP (int ESP)
 	{
 		temp = GetProcessByPID(CurrentPID);
 		temp->ESP = ESP;
+		if(temp->state == RUNNING)
+			temp->state = READY;
 	}
 	FirstTime = 0;
 	return;
@@ -63,7 +61,10 @@ PROCESS * GetNextProcess(void)
 {
 	PROCESS * temp;
 	temp = GetNextTask();
+	temp->state = RUNNING;
 	CurrentPID = temp->pid;
+	//printf("PID: %d\n", CurrentPID);
+	//printf("process name: %s\n", temp->name);
 	last100[counter100] = CurrentPID;
 	counter100 = (counter100 + 1) % 100;
 	return temp;
@@ -72,21 +73,42 @@ PROCESS * GetNextProcess(void)
 PROCESS * GetNextTask()
 {
 	processNode * aux;
+	int flag = 0, beginning = 0;
 
 	if(ready == NULL)
 		return &idle;
-	
-	if(CurrentPID == 0)
-		return ((processNode*)ready)->process;
 
 	aux = ((processNode *)ready);
-	while(aux->process->pid != CurrentPID)
-		aux = ((processNode*)aux->next);
 
-	if(aux->next == NULL)
-		return ((processNode*)ready)->process;
-		
-	return ((processNode*)aux->next)->process;
+	if(CurrentPID == 0)
+	{
+		while(aux != NULL)
+		{
+			if(aux->process->state == READY)
+				return aux->process;
+			aux = ((processNode*)aux->next);
+		}
+		return &idle;
+	}
+
+	while(aux != NULL)
+	{
+		if(aux->process->pid == CurrentPID)
+			flag = 1;
+		aux = ((processNode*)aux->next);
+		if(flag && aux != NULL && aux->process->state == READY)
+			return aux->process;
+		if(aux == NULL && !beginning)
+		{
+			beginning = 1;
+			aux = ((processNode*)ready);
+			if(aux->process->state == READY)
+				return aux->process;
+		}
+	}
+
+	return &idle;
+
 }
 
 int LoadESP(PROCESS* proc)
@@ -96,46 +118,19 @@ int LoadESP(PROCESS* proc)
 
 void SetupScheduler(void)
 {
-	int i;
+	void * idleprocess;
 
-	for (i = 0; i < PROCESS_QTTY; i++)
-		procesos[i].free = 1;
-	
+	idleprocess = (void *)malloc(0x200);
 	idle.pid = 0;
 	idle.foreground = 0;
 	idle.priority = 4;
-	memcpy(idle.name,"Idle",5);
-	idle.sleep = 0;
-	idle.blocked = 0;
+	memcpy(idle.name, "Idle", str_len("Idle") + 1);
+	idle.state = READY;
 	idle.tty = 0;
-	idle.stackstart = (int)(&idleprocess);
-	idle.stacksize = 0x400;
-	procesos[i].parent = 0;
-	idle.lastCalled = 0;
-	idle.ESP = LoadStackFrame(Idle,0,0,(int)(&idleprocess + 0x3FF),Cleaner);
+	idle.stackstart = (int)idleprocess;
+	idle.stacksize = 0x200;
+	idle.parent = 0;
+	idle.ESP = LoadStackFrame(Idle,0,0,(int)(idleprocess+0x1FF), end_process);
 	
 	return;
-}
-
-void Cleaner(void)
-{
-	char Men[10];
-	_Cli();
-	Destroy(CurrentPID);
-	k_clear_screen();
-	/*mess("==>");*/
-	_Sti();
-	while(1);
-	
-}
-
-int NoProcesses()
-{
-	int i;
-	for (i = 0; i < PROCESS_QTTY; i++)
-	{
-		if (procesos[i].free == 0)
-			return 0;
-	}
-	return 1;
 }

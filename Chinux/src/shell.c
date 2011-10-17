@@ -16,6 +16,7 @@
 #include "../include/utils.h"
 #include "../include/keyboard.h"
 #include "../include/video.h"
+#include "../include/kc.h"
 
 /***	Module Defines	***/
 #define STO_MAX  100
@@ -25,12 +26,20 @@ char storedComm[STO_MAX][BUFFER_SIZE + 1];
 int sto_i = STO_MAX - 1;
 int sel_com = STO_MAX - 1;
 char arrow_pressed = FALSE;
+int usrLoged = 0;
+int usrName = 0;
+int password = 0;
+user usr;
 extern unsigned int curpos;
 extern int currentTTY;
 extern TTY terminals[4];
 extern int CurrentPID;
+extern user admin;
 
 static int read_command();
+void prueba(int argc, char * argv[]);
+void logUser(void);
+void waitpid(int pid);
 
 char
 * splash_screen[25] = {
@@ -179,15 +188,44 @@ saveCommand() {
 	return;
 }
 
-void
+int
 parseBuffer() {
 	int invalidcom = FALSE;
 	int cleared_screen = FALSE;
+	int isFront = 1;
 	scan_test = NOTSCAN;
 
 	scanf("%s", buffcopy);
 
+	if(!usrLoged && usrName)
+	{
+		strcopy(usr.name, buffcopy, terminals[currentTTY].buffer.size);
+		clearBuffcopy();
+		terminals[currentTTY].buffer.first_char = terminals[currentTTY].buffer.actual_char + 1 % BUFFER_SIZE;
+		terminals[currentTTY].buffer.size = 0;
+		return;
+	}
+
+	if(!usrLoged && password)
+	{
+		strcopy(usr.password, buffcopy, terminals[currentTTY].buffer.size);
+		clearBuffcopy();
+		if(strcmp(usr.name, admin.name) && strcmp(usr.password, admin.password))
+			usrLoged = 1;
+		else
+			printf("\nUser name or password incorrect. Please try again.");
+		terminals[currentTTY].buffer.first_char = terminals[currentTTY].buffer.actual_char + 1 % BUFFER_SIZE;
+		terminals[currentTTY].buffer.size = 0;		
+		return;
+	}
+
 	saveCommand();
+
+	if(buffcopy[terminals[currentTTY].buffer.size - 1] == '&' && buffcopy[terminals[currentTTY].buffer.size - 2] == ' ')
+	{
+		isFront = 0;
+		buffcopy[terminals[currentTTY].buffer.size - 2] = 0;
+	}
 
 	if (strcmp("clear", buffcopy)) {
 		k_clear_screen();
@@ -213,7 +251,9 @@ parseBuffer() {
 	} else if (strcmp("help", buffcopy)) {
 		putc('\n');
 		showHelp();
-		clearBuffcopy();
+	}else if(strcmp("prueba", buffcopy)){
+		//putc('\n');
+		CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, isFront);
 	} else {
 		invalidcom = TRUE;
 	}
@@ -236,13 +276,52 @@ parseBuffer() {
 
 	clearBuffcopy();
 
-	return;
+	return isFront;
 }
 
 
+void prueba(int argc, char * argv[])
+{
+	int i = 10000000;
+	_Cli();
+	printf("prueba\n");
+	while(i--)
+		;
+	_Sti();
+
+	return;
+}
+
+void
+logUser(void)
+{
+	while(!usrLoged)
+	{
+		printf("username: ");
+		moveCursor();
+		usrName = 1;
+		block_process(CurrentPID);
+		parseBuffer();
+		usrName = 0;
+		printf("\n");
+		printf("password: ");
+		moveCursor();
+		password = 1;
+		block_process(CurrentPID);
+		parseBuffer();
+		password = 0;
+		printf("\n");
+	}
+	return;
+}
+
 void
 shell(int argc, char * argv[]) {
-	int command;
+	int command, pid;
+
+	if(currentTTY != argc)
+		block_process(CurrentPID);
+	logUser();
 	printShellLine();
 	moveCursor();
 	while (TRUE) {
@@ -251,50 +330,28 @@ shell(int argc, char * argv[]) {
 		command = read_command();
 		if(command == -1)
 		{
-			/*PROCESS * proc;
-			proc = (PROCESS *)GetProcessByPID(CurrentPID);
-			if (proc->blocked == 0)
-				block_process(proc->pid);*/
 			block_process(CurrentPID);
-			//printf("shell blocked\n");
 		}
 		else {
-			switch (scan_test) {
-			case NOTSCAN:
-				parseBuffer();
-				arrow_pressed = FALSE;
-				printShellLine();
-				break;
-			case SCANSTRING:
-				putc('\n');
-				scanStringTest();
-				scan_test = NOTSCAN;
-				clearBuffcopy();
-				printShellLine();
-				break;
-			case SCANINT:
-				putc('\n');
-				scanIntTest();
-				scan_test = NOTSCAN;
-				clearBuffcopy();
-				printShellLine();
-				break;
-			case SCANDOUBLE:
-				putc('\n');
-				scanDoubleTest();
-				scan_test = NOTSCAN;
-				clearBuffcopy();
-				printShellLine();
-				break;
-			}
+			pid = parseBuffer();
+			if(pid)
+				waitpid(pid);
+			printShellLine();
 			terminals[currentTTY].buffer.first_char = terminals[currentTTY].buffer.actual_char + 1 % BUFFER_SIZE;
 			terminals[currentTTY].buffer.size = 0;
-			//printf("shell ready\n");
-		} 
+		}
 		moveCursor();
 		_Sti();
 	}
 	return;
+}
+
+void waitpid(int pid)
+{
+	PROCESS* proc;
+	proc = GetProcessByPID(CurrentPID);
+	proc->waitingPid = pid;
+	block_process(CurrentPID);
 }
 
 int read_command()

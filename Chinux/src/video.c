@@ -103,12 +103,12 @@ enter()
 
 void 
 moveCursor(){
-	_Cli();
+	//_Cli();
 	_export(0x3D4, 0x0F);
 	_export(0x3D5, (curpos/2) & 0xFF);
 	_export(0x3D4, 0x0E);
 	_export(0x3D5, ((curpos/2)>>8) & 0xFF);
-	_Sti();
+	//_Sti();
 
 	return;
  }

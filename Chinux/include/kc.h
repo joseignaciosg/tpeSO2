@@ -17,7 +17,7 @@ void k_clear_screen();
 void setup_IDT_entry (DESCR_INT *item, byte selector, dword offset, byte access, byte cero);
 
 PROCESS * GetProcessByPID(int pid);
-void Cleaner(void);
+void end_process(void);
 int Idle(int argc, char* argv[]);
 int CreateProcessAt(char*,int (*process)(int,char**),int tty, int argc, char** argv, int stacklength, int priority, int isFront);
 void Destroy(int PID);

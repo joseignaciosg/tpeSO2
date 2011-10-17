@@ -11,6 +11,7 @@
 /***	Project Includes	***/
 #include "../include/defs.h"
 #include "../include/stdio.h"
+#include "../include/kc.h"
 
 
 char buffcopy[BUFFER_SIZE];
@@ -30,7 +31,9 @@ extern int currentTTY;
 extern char * vidmem;
 extern int scan_test;
 extern int currentTTY;
-extern PROCESS procesos[PROCESS_QTTY];
+extern int password;
+extern int usrLoged;
+extern int CurrentPID;
 
 void memcpy(char* a, char* b, int len);
 
@@ -64,7 +67,8 @@ void clearBuffcopy(void) {
 
 void deleteCharFromBuff() {
 	if (terminals[currentTTY].buffer.size != 0) {
-		clearc(' ');
+		if(!password)
+			clearc(' ');
 		if (terminals[currentTTY].buffer.actual_char == 0) {
 			terminals[currentTTY].buffer.actual_char = BUFFER_SIZE - 1;
 		} else {
@@ -157,35 +161,39 @@ void int_09() {
 		}
 		break;
 	case 0x1c: //enter pressed
-		if(terminals[currentTTY].buffer.size == 0)
+		if(terminals[currentTTY].buffer.size == 0 && usrLoged)
 		{
 			putc('\n');
 			printShellLine();
 		}
-		awake_TTY_proc(currentTTY);	
+		awake_process(terminals[currentTTY].PID);
 		break;
 
 	default:
 
+		if( new_scan_code == 0x2E && ctrl_state)
+		{
+			kill(CurrentPID);
+			break;
+		}
+
 		//if(new_scan_code>=0x3B && new_scan_code<=0x3E && alt_state) // entre F1 y F4
-		if(new_scan_code >= 0x2 && new_scan_code <= 0x5 && alt_state)
+		if(new_scan_code >= 0x2 && new_scan_code <= 0x5 && alt_state && usrLoged)
 		{
 			int nextTTY;
+			PROCESS * proc;
 			//nextTTY = new_scan_code - 0x3B;
 			nextTTY = new_scan_code - 0x2;
+			block_process(terminals[currentTTY].PID);
 			memcpy(terminals[currentTTY].terminal, vidmem, 80 * 2 * 25);
 			memcpy(vidmem, terminals[nextTTY].terminal, 80 * 2 * 25);
 			terminals[currentTTY].curpos = curpos;
-			if(terminals[nextTTY].uninit)
-			{
-				terminals[nextTTY].uninit = 0;
-				curpos = 0;
-				printShellLine();
-				terminals[nextTTY].curpos = curpos;
-			}
 			currentTTY = nextTTY;
 			curpos = terminals[currentTTY].curpos;
 			moveCursor();
+			proc = GetProcessByPID(terminals[currentTTY].PID);
+			if(terminals[currentTTY].buffer.size == 0 && proc->waitingPid == 0)
+				awake_process(terminals[currentTTY].PID);
 			break;
 		}
 
@@ -205,9 +213,12 @@ void int_09() {
 	}
 
 	if (keypressed) {
-		putc(terminals[currentTTY].buffer.array[terminals[currentTTY].buffer.actual_char]);
+		if(!password)
+		{
+			putc(terminals[currentTTY].buffer.array[terminals[currentTTY].buffer.actual_char]);
+			moveCursor();
+		}
 		keypressed = FALSE;
-		moveCursor();
 	} else if (up_arrow_state && scan_test == NOTSCAN) {
 		showLastCommand();
 	} else if (down_arrow_state && scan_test == NOTSCAN) {

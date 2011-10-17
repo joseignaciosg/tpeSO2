@@ -8,6 +8,7 @@ GLOBAL  _export
 GLOBAL  _getCPUSpeed
 GLOBAL  _mascaraPIC1,_mascaraPIC2,_Cli,_Sti
 GLOBAL  _debug
+GLOBAL	_yield
 
 
 EXTERN  int_08
@@ -97,12 +98,16 @@ _getCPUSpeed:
 		sti
 		ret
 
+_yield:
+	int 8
+	ret
+
 _int_08_hand:				; Handler de INT 8 ( Timer tick)
 	cli
 	pushad
 		call isTimeSlot
 		cmp eax,0
-		jne processRuning
+		jne processRunning
 		mov eax, esp
 		push eax
 		call SaveESP
@@ -113,8 +118,8 @@ _int_08_hand:				; Handler de INT 8 ( Timer tick)
 		pop ebx
 		mov esp,eax
 	
-processRuning:	mov al,20h			; Envio de EOI generico al PIC
-	out 20h,al
+processRunning:	mov al,20h			; Envio de EOI generico al PIC
+		out 20h,al
 	popad
 	
 	sti
