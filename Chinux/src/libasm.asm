@@ -9,7 +9,11 @@ GLOBAL  _getCPUSpeed
 GLOBAL  _mascaraPIC1,_mascaraPIC2,_Cli,_Sti
 GLOBAL  _debug
 GLOBAL	_yield
-
+GLOBAL	_out
+GLOBAL	_in
+GLOBAL	_inw
+GLOBAL	_outw
+GLOBAL	_Halt
 
 EXTERN  int_08
 EXTERN  int_09
@@ -187,6 +191,46 @@ _int_80_hand:      ;Handler de INT 80
       pop    es
       pop    ds
       iret
+
+_Halt:			; Should lock everything?
+		hlt			; wait for HPET/PIT
+		ret
+
+_in:
+		push	ebp
+		mov		ebp, esp		; Stack frame
+		mov		edx, [ebp+8]    ; Puerto
+		mov		eax, 0          ; Limpio eax
+		in		al, dx
+		pop		ebp
+		ret
+
+_out:
+		push	ebp
+		mov		ebp, esp		; Stack frame
+		mov		edx, [ebp+8]   	; Puerto
+		mov		eax, [ebp+12]  	; Lo que se va a mandar
+		out		dx, al
+		pop		ebp
+		ret
+
+_inw:
+		push	ebp
+		mov		ebp, esp		; Stack frame
+		mov		edx, [ebp+8]    ; Puerto
+		mov		eax, 0          ; Limpio eax
+		in		ax, dx
+		pop		ebp
+		ret
+
+_outw:
+		push	ebp
+		mov		ebp, esp		; Stack frame
+		mov		edx, [ebp+8]   	; Puerto
+		mov		eax, [ebp+12]  	; Lo que se va a mandar
+		out		dx, ax
+		pop		ebp
+		ret
 
 
 ; Debug para el BOCHS, detiene la ejecución. Para continuar colocar en el BOCHSDBG: set $eax=0
