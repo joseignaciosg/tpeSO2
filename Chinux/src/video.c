@@ -15,20 +15,27 @@
 
 /*points to the videoboard */
 char * vidmem = (char *) 0xb8000;
-unsigned int curpos = 0;
+extern int currentTTY;
+extern int currentProcessTTY;
+extern TTY terminals[4];
+extern int keypressed;
 
 void
 k_clear_screen()
 {
-	unsigned int i=0;
+	int i = 0;
 	while(i < (80*25*2))
 	{
-		vidmem[i]=' ';
+		if(currentProcessTTY == currentTTY)
+			vidmem[i]=' ';
+		terminals[currentProcessTTY].terminal[i] = ' ';
 		i++;
-		vidmem[i]=WHITE_TXT; //0x68
+		if(currentProcessTTY == currentTTY)
+			vidmem[i] = WHITE_TXT;
+		terminals[currentProcessTTY].terminal[i] = WHITE_TXT;
 		i++;
 	}
-	curpos=0;
+	terminals[currentTTY].curpos = 0;
 	return;
 }
 
@@ -40,14 +47,31 @@ writeScreen(char* buffer, int count)
 
 	while ( j < count )
 	{
-		if(curpos == 80*25*2){
-			scrolldown();
+		if(keypressed)
+		{
+			if(terminals[currentTTY].curpos == 80*25*2)
+				scrolldown();
+			vidmem[terminals[currentTTY].curpos] = buffer[j];
+			terminals[currentTTY].curpos++;
+			vidmem[terminals[currentTTY].curpos] = WHITE_TXT;
+			terminals[currentTTY].curpos++;
+			j++;
 		}
-		vidmem[curpos] = buffer[j];
-		curpos++;
-		vidmem[curpos] = WHITE_TXT;
-		curpos++;
-		j++;
+		else
+		{
+			if(terminals[currentProcessTTY].curpos == 80*25*2)
+				scrolldown();
+			
+			if(currentProcessTTY == currentTTY)
+				vidmem[terminals[currentTTY].curpos] = buffer[j];
+			terminals[currentProcessTTY].terminal[terminals[currentProcessTTY].curpos] = buffer[j];
+			terminals[currentProcessTTY].curpos++;
+			if(currentProcessTTY == currentTTY)
+				vidmem[terminals[currentTTY].curpos] = WHITE_TXT;
+			terminals[currentProcessTTY].terminal[terminals[currentProcessTTY].curpos] = WHITE_TXT;
+			terminals[currentProcessTTY].curpos++;
+			j++;
+		}
 	}
 	return;
 }
@@ -57,11 +81,11 @@ void
 eraseScreen(char* buffer, int count)
 {
 	int j = 0;
-	if (curpos > 0) {
+	if (terminals[currentTTY].curpos > 0) {
 		while (j < count) {
-			curpos--;
-			curpos--;
-			vidmem[curpos] = buffer[j];
+			terminals[currentTTY].curpos -= 2;
+			vidmem[terminals[currentTTY].curpos] = buffer[j];
+			terminals[currentTTY].terminal[terminals[currentTTY].curpos] = buffer[j];
 			j++;
 		}
 	}
@@ -69,20 +93,33 @@ eraseScreen(char* buffer, int count)
 }
 
 
-
-
 void
 scrolldown()
 {
-	unsigned int i = 0;
+	int i = 0;
+	while(i < (80 * 2 * 24))
+	{
+		if(currentProcessTTY == currentTTY)
+			vidmem[i] = vidmem[i + 80 * 2];
+		terminals[currentProcessTTY].terminal[i] = terminals[currentProcessTTY].terminal[i + 80 * 2];
+		i++;
+		if(currentProcessTTY == currentTTY)
+			vidmem[i] = WHITE_TXT;
+		terminals[currentProcessTTY].terminal[i] = WHITE_TXT;
+		i++;
+	}
 	while(i < (80 * 2 * 25))
 	{
-		vidmem[i]=vidmem[i+80*2];
+		if(currentProcessTTY == currentTTY)
+			vidmem[i] = ' ';
+		terminals[currentProcessTTY].terminal[i] = ' ';
 		i++;
-		vidmem[i]=WHITE_TXT;
+		if(currentProcessTTY == currentTTY)
+			vidmem[i] = WHITE_TXT;
+		terminals[currentProcessTTY].terminal[i] = WHITE_TXT;
 		i++;
-	};
-	curpos=(80*24*2);
+	}
+	terminals[currentProcessTTY].curpos = (80 * 24 * 2);
 
 	return;
 }
@@ -91,10 +128,10 @@ scrolldown()
 void
 enter()
 {
-	if(curpos > 80*24*2)
+	if(terminals[currentProcessTTY].curpos > 80*24*2)
 		scrolldown();
 	else
-		curpos += 80*2 - curpos%(80*2);
+		terminals[currentProcessTTY].curpos += 80 * 2 - terminals[currentProcessTTY].curpos % (80 * 2);
 
 	return;
 }
@@ -104,10 +141,13 @@ enter()
 void 
 moveCursor(){
 	//_Cli();
-	_export(0x3D4, 0x0F);
-	_export(0x3D5, (curpos/2) & 0xFF);
-	_export(0x3D4, 0x0E);
-	_export(0x3D5, ((curpos/2)>>8) & 0xFF);
+	if(currentProcessTTY == currentTTY)
+	{
+		_export(0x3D4, 0x0F);
+		_export(0x3D5, (terminals[currentTTY].curpos/2) & 0xFF);
+		_export(0x3D4, 0x0E);
+		_export(0x3D5, ((terminals[currentTTY].curpos/2)>>8) & 0xFF);
+	}
 	//_Sti();
 
 	return;

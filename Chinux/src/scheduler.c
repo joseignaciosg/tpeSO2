@@ -19,6 +19,8 @@ extern processList ready;
 extern int roundRobin;
 
 int timeslot = TIMESLOT;
+extern int currentProcessTTY;
+extern int currentTTY;
 
 void SaveESP (int);
 PROCESS * GetNextProcess (void);
@@ -36,6 +38,19 @@ void* GetTemporaryESP (void)
 int isTimeSlot()
 {
 	//printf("timeslot:%d", timeslot);
+	processNode * node;
+	
+	node = ((processNode*)ready);
+	while(node != NULL)
+	{
+		if(node->process->sleep)
+		{
+			node->process->sleep--;
+			if(!node->process->sleep)
+				awake_process(node->process->pid);
+		}
+		node = ((processNode*)node->next);
+	}
 	if(--timeslot)
 		return timeslot;
 	timeslot = TIMESLOT;
@@ -63,6 +78,10 @@ PROCESS * GetNextProcess(void)
 	temp = GetNextTask();
 	temp->state = RUNNING;
 	CurrentPID = temp->pid;
+	if(temp->pid == 0)
+		currentProcessTTY = currentTTY;
+	else
+		currentProcessTTY = temp->tty;
 	//printf("PID: %d\n", CurrentPID);
 	//printf("process name: %s\n", temp->name);
 	last100[counter100] = CurrentPID;
@@ -129,7 +148,8 @@ void SetupScheduler(void)
 	idle.tty = 0;
 	idle.stackstart = (int)idleprocess;
 	idle.stacksize = 0x200;
-	idle.parent = 0;
+	idle.parent = -1;
+	idle.waitingPid = -1;
 	idle.ESP = LoadStackFrame(Idle,0,0,(int)(idleprocess+0x1FF), end_process);
 	
 	return;

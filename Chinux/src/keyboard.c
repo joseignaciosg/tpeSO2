@@ -3,7 +3,6 @@
  *  Keyboard.c
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
- *		Reznik, Luciana
  *		ITBA 2011
  *
  ***********************************/
@@ -25,7 +24,6 @@ unsigned alt_state = FALSE;
 unsigned supr_state = FALSE;
 unsigned up_arrow_state = FALSE;
 unsigned down_arrow_state = FALSE;
-extern unsigned int curpos;
 extern TTY terminals[4];
 extern int currentTTY;
 extern char * vidmem;
@@ -187,9 +185,7 @@ void int_09() {
 			block_process(terminals[currentTTY].PID);
 			memcpy(terminals[currentTTY].terminal, vidmem, 80 * 2 * 25);
 			memcpy(vidmem, terminals[nextTTY].terminal, 80 * 2 * 25);
-			terminals[currentTTY].curpos = curpos;
 			currentTTY = nextTTY;
-			curpos = terminals[currentTTY].curpos;
 			moveCursor();
 			proc = GetProcessByPID(terminals[currentTTY].PID);
 			if(terminals[currentTTY].buffer.size == 0 && proc->waitingPid == 0)
