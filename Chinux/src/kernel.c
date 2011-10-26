@@ -23,7 +23,6 @@ processList ready;
 static int nextPID = 1;
 int CurrentPID = 0;
 int currentTTY = 0;
-int roundRobin = 0;
 int currentProcessTTY = 0;
 TTY terminals[4];
 user admin;
@@ -125,6 +124,7 @@ int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, c
 	proc->parent = CurrentPID;
 	proc->waitingPid = 0;
 	proc->sleep = 0;
+	proc->acum = priority + 1;
 	set_Process_ready(proc);	
 	return proc->pid;
 	
@@ -245,14 +245,14 @@ void end_process(void)
 		printf("[%d]\tDone\t%s\n", proc->pid, proc->name);
 	else{
 		parent = GetProcessByPID(proc->parent);
-		if(parent->waitingPid = proc->pid)
+		if(parent->waitingPid == proc->pid)
 		{
+			//printf("process. process pid: %d process parent:%d\n", proc->pid, proc->parent);
 			parent->waitingPid = 0;
-			if(parent->tty == currentTTY)
-				awake_process(parent->pid);
+			//if(parent->tty == currentTTY)
+			awake_process(parent->pid);
 		}
 	}
-
 	block_process(CurrentPID);
 	_Sti();
 	//while(1);

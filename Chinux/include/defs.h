@@ -118,6 +118,7 @@ typedef struct PROCESS
 	int stacksize;
 	int waitingPid;
 	int sleep;
+	int acum;
 
 } PROCESS;
 

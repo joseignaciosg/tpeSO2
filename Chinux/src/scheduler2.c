@@ -85,42 +85,46 @@ PROCESS * GetNextProcess(void)
 PROCESS * GetNextTask()
 {
 	processNode * aux;
-	int flag = 0, beginning = 0;
+	int maxAcum = 0, maxPriority = -1;
+	PROCESS * proc = NULL;
 
 	if(ready == NULL)
 		return &idle;
 
 	aux = ((processNode *)ready);
 
-	if(CurrentPID == 0)
-	{
-		while(aux != NULL)
-		{
-			if(aux->process->state == READY)
-				return aux->process;
-			aux = ((processNode*)aux->next);
-		}
-		return &idle;
-	}
-
 	while(aux != NULL)
 	{
-		if(aux->process->pid == CurrentPID)
-			flag = 1;
-		aux = ((processNode*)aux->next);
-		if(flag && aux != NULL && aux->process->state == READY)
-			return aux->process;
-		if(aux == NULL && !beginning)
+		/*if(aux->process->state == READY)
+		printf("%s pid:%d acum:%d priority:%d\n", aux->process->name, aux->process->pid, aux->process->acum, aux->process->priority);*/
+		if(aux->process->acum >= maxAcum && aux->process->state == READY)
 		{
-			beginning = 1;
-			aux = ((processNode*)ready);
-			if(aux->process->state == READY)
-				return aux->process;
+			if(aux->process->acum == maxAcum)
+			{
+				if(aux->process->priority >= maxPriority)
+				{
+					maxPriority = aux->process->priority;
+					proc = aux->process;
+					maxAcum = aux->process->acum;
+				}
+			}
+			else
+			{
+				maxPriority = aux->process->priority;
+				proc = aux->process;
+				maxAcum = aux->process->acum;
+			}
 		}
+		if(aux->process->state == READY)
+			aux->process->acum += aux->process->priority + 1;
+		aux = ((processNode*)aux->next);
 	}
 
-	return &idle;
-
+	if(!proc)
+		return &idle;
+	
+	proc->acum = 0;
+	return proc;
 }
 
 int LoadESP(PROCESS* proc)
@@ -135,7 +139,7 @@ void SetupScheduler(void)
 	idleprocess = (void *)malloc(0x200);
 	idle.pid = 0;
 	idle.foreground = 0;
-	idle.priority = 4;
+	idle.priority = 0;
 	memcpy(idle.name, "Idle", str_len("Idle") + 1);
 	idle.state = READY;
 	idle.tty = 0;

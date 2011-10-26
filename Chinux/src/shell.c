@@ -38,6 +38,7 @@ extern int currentProcessTTY;
 static int read_command();
 void prueba(int argc, char * argv[]);
 void prueba2(int argc, char * argv[]);
+void prioridad(int argc, char * argv[]);
 void top(int argc, char * argv[]);
 void logUser(void);
 void waitpid(int pid);
@@ -262,7 +263,17 @@ parseBuffer() {
 		pid = CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(strcmp("prueba2", buffcopy)){
 		//putc('\n');
-		pid = CreateProcessAt("Prueba2", (int(*)(int, char**))prueba2, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
+		pid = CreateProcessAt("Prueba2", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
+	}else if(strcmp("prioridad0", buffcopy)){
+		pid = CreateProcessAt("prioridad0", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 0, isFront);
+	}else if(strcmp("prioridad1", buffcopy)){
+		pid = CreateProcessAt("prioridad1", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 1, isFront);
+	}else if(strcmp("prioridad2", buffcopy)){
+		pid = CreateProcessAt("prioridad2", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
+	}else if(strcmp("prioridad3", buffcopy)){
+		pid = CreateProcessAt("prioridad3", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 3, isFront);
+	}else if(strcmp("prioridad4", buffcopy)){
+		pid = CreateProcessAt("prioridad4", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 4, isFront);
 	}else if(strcmp("top", buffcopy)){
 		pid = CreateProcessAt("Top", (int(*)(int, char**))top, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(buffcopy[0] == 'k' && buffcopy[1] == 'i' && buffcopy[2] == 'l' && buffcopy[3] == 'l' && buffcopy[4] == ' '){
@@ -298,13 +309,20 @@ parseBuffer() {
 	return isFront;
 }
 
+void prioridad(int argc, char * argv[])
+{
+	_Sti();
+	while(TRUE)
+	;
+}
+
 void prueba2(int argc, char * argv[])
 {
 	int i = 50000000;
 	_Sti();
-	//CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, 1);
-	//CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, 1);
-	//CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, 1);
+	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, 1);
+	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, 1);
+	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, 1);
 	printf("prueba2\n");
 	while(i--)
 		;
@@ -314,11 +332,11 @@ void prueba2(int argc, char * argv[])
 
 void prueba(int argc, char * argv[])
 {
-	int i = 50000000;
+	int i = 10000;
 	_Sti();
 	printf("prueba\n");
 	while(i--)
-		printf("prueba\n");
+		;//printf("prueba\n");
 	return;
 }
 
@@ -336,7 +354,7 @@ void top(int argc, char * argv[])
 		printf("pid   %%cpu\n");
 		for(i = 0; i < 100; i++)
 			if(top100[i] != 0)
-				printf("%d   %d\n", i, top100[i]);
+				printf("%d     %d\n", i, top100[i]);
 		sleep(2);
 	}
 }
