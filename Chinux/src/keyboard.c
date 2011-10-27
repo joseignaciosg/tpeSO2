@@ -3,7 +3,6 @@
  *  Keyboard.c
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
- *		Reznik, Luciana
  *		ITBA 2011
  *
  ***********************************/
@@ -25,7 +24,6 @@ unsigned alt_state = FALSE;
 unsigned supr_state = FALSE;
 unsigned up_arrow_state = FALSE;
 unsigned down_arrow_state = FALSE;
-extern unsigned int curpos;
 extern TTY terminals[4];
 extern int currentTTY;
 extern char * vidmem;
@@ -34,6 +32,7 @@ extern int currentTTY;
 extern int password;
 extern int usrLoged;
 extern int CurrentPID;
+extern int currentProcessTTY;
 
 void memcpy(char* a, char* b, int len);
 
@@ -93,7 +92,7 @@ int addCharToBuff(char c) {
 
 void int_09() {
 	char c;
-	int i;
+	int i, aux;
 	unsigned char new_scan_code = _inport(0x60);
 	static const unsigned char
 		shiftTable[][83] = { { 0/*Esc*/, '1', '2', '3', '4', '5', '6', '7',
@@ -105,14 +104,15 @@ void int_09() {
 				0/*caps*/, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0, 0 },
 
-		{ 0/*Esc*/, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_',
+		{ 0/*Esc*/, '!', '@', '#', '$', '%', '&', '/', '(', ')', '=', '_',
 				'+', '\b', 0, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O',
 				'P', '{', '}', '\n', 0/*ctrl*/, 'A', 'S', 'D', 'F', 'G',
 				'H', 'J', 'K', 'L', ':', '"', '~', 0/*Lshift*/, '|', 'Z',
 				'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0/*Rshift*/,
 				0, 0/*alt*/, ' ', 0/*caps*/, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
-
+	aux = currentProcessTTY;
+	currentProcessTTY = currentTTY;
 	switch (new_scan_code) {
 	case 0x2a: //for shifts
 		shift_state = TRUE;
@@ -180,17 +180,18 @@ void int_09() {
 		//if(new_scan_code>=0x3B && new_scan_code<=0x3E && alt_state) // entre F1 y F4
 		if(new_scan_code >= 0x2 && new_scan_code <= 0x5 && alt_state && usrLoged)
 		{
-			int nextTTY;
+			int nextTTY, auxtty;
 			PROCESS * proc;
 			//nextTTY = new_scan_code - 0x3B;
 			nextTTY = new_scan_code - 0x2;
 			block_process(terminals[currentTTY].PID);
 			memcpy(terminals[currentTTY].terminal, vidmem, 80 * 2 * 25);
 			memcpy(vidmem, terminals[nextTTY].terminal, 80 * 2 * 25);
-			terminals[currentTTY].curpos = curpos;
 			currentTTY = nextTTY;
-			curpos = terminals[currentTTY].curpos;
+			auxtty = currentProcessTTY;
+			currentProcessTTY = currentTTY;
 			moveCursor();
+			currentProcessTTY = auxtty;
 			proc = GetProcessByPID(terminals[currentTTY].PID);
 			if(terminals[currentTTY].buffer.size == 0 && proc->waitingPid == 0)
 				awake_process(terminals[currentTTY].PID);
@@ -226,6 +227,7 @@ void int_09() {
 	} else if (shift_state && ctrl_state && supr_state) {
 			reboot();
 	}
+	currentProcessTTY = aux;
 	return;
 }
 

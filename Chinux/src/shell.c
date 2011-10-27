@@ -3,7 +3,6 @@
  *  shell.c
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
- *		Reznik, Luciana
  *		ITBA 2011
  *
  ***********************************/
@@ -30,16 +29,21 @@ int usrLoged = 0;
 int usrName = 0;
 int password = 0;
 user usr;
-extern unsigned int curpos;
+
 extern int currentTTY;
 extern TTY terminals[4];
 extern int CurrentPID;
 extern user admin;
-
+extern int currentProcessTTY;
 static int read_command();
 void prueba(int argc, char * argv[]);
+void prueba2(int argc, char * argv[]);
+void prioridad(int argc, char * argv[]);
+void top(int argc, char * argv[]);
 void logUser(void);
 void waitpid(int pid);
+int top100[100] = {0};
+extern int last100[100];
 
 char
 * splash_screen[25] = {
@@ -136,6 +140,7 @@ showLastCommand() {
 	}
 	up_arrow_state = FALSE;
 	arrow_pressed = TRUE;
+	moveCursor();
 
 	return;
 }
@@ -169,6 +174,7 @@ showPreviousCommand() {
 	}
 	down_arrow_state = FALSE;
 	arrow_pressed = TRUE;
+	moveCursor();
 
 	return;
 }
@@ -192,7 +198,7 @@ int
 parseBuffer() {
 	int invalidcom = FALSE;
 	int cleared_screen = FALSE;
-	int isFront = 1;
+	int isFront = 1, pid;
 	scan_test = NOTSCAN;
 
 	scanf("%s", buffcopy);
@@ -230,6 +236,7 @@ parseBuffer() {
 	if (strcmp("clear", buffcopy)) {
 		k_clear_screen();
 		cleared_screen = TRUE;
+		isFront = 0;
 	} else if (strcmp("scanint", buffcopy)) {
 		scan_test = SCANINT;
 		putc('\n');
@@ -253,12 +260,33 @@ parseBuffer() {
 		showHelp();
 	}else if(strcmp("prueba", buffcopy)){
 		//putc('\n');
-		CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, isFront);
-	} else {
+		pid = CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
+	}else if(strcmp("prueba2", buffcopy)){
+		//putc('\n');
+		pid = CreateProcessAt("Prueba2", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
+	}else if(strcmp("prioridad0", buffcopy)){
+		pid = CreateProcessAt("prioridad0", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 0, isFront);
+	}else if(strcmp("prioridad1", buffcopy)){
+		pid = CreateProcessAt("prioridad1", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 1, isFront);
+	}else if(strcmp("prioridad2", buffcopy)){
+		pid = CreateProcessAt("prioridad2", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
+	}else if(strcmp("prioridad3", buffcopy)){
+		pid = CreateProcessAt("prioridad3", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 3, isFront);
+	}else if(strcmp("prioridad4", buffcopy)){
+		pid = CreateProcessAt("prioridad4", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 4, isFront);
+	}else if(strcmp("top", buffcopy)){
+		pid = CreateProcessAt("Top", (int(*)(int, char**))top, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
+	}else if(buffcopy[0] == 'k' && buffcopy[1] == 'i' && buffcopy[2] == 'l' && buffcopy[3] == 'l' && buffcopy[4] == ' '){
+		int pid;
+		scanfi(&pid, &buffcopy[5]);
+		kill(pid);
+		isFront = 0;
+	}else {
 		invalidcom = TRUE;
+		isFront = 0;
 	}
 
-	if (curpos > 80 * 24 * 2 && scan_test == NOTSCAN) {
+	if (terminals[currentProcessTTY].curpos > 80 * 24 * 2 && scan_test == NOTSCAN) {
 		scrolldown();
 		if (invalidcom && buffcopy[0]) {
 			invalidcom = FALSE;
@@ -276,20 +304,59 @@ parseBuffer() {
 
 	clearBuffcopy();
 
+	if(isFront)
+		return pid;
 	return isFront;
 }
 
+void prioridad(int argc, char * argv[])
+{
+	_Sti();
+	while(TRUE)
+	;
+}
+
+void prueba2(int argc, char * argv[])
+{
+	int i = 50000000;
+	_Sti();
+	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, 1);
+	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, 1);
+	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, 1);
+	printf("prueba2\n");
+	while(i--)
+		;
+
+	return;
+}
 
 void prueba(int argc, char * argv[])
 {
-	int i = 10000000;
-	_Cli();
+	int i = 10000;
+	_Sti();
 	printf("prueba\n");
 	while(i--)
-		;
-	_Sti();
-
+		;//printf("prueba\n");
 	return;
+}
+
+
+void top(int argc, char * argv[])
+{
+	int i, j;
+	_Sti();
+	while(TRUE)
+	{
+		for(i = 0; i < 100; i++)
+			top100[i] = 0;
+		for(i = 0; i < 100; i++)
+			top100[last100[i]]++;
+		printf("pid   %%cpu\n");
+		for(i = 0; i < 100; i++)
+			if(top100[i] != 0)
+				printf("%d     %d\n", i, top100[i]);
+		sleep(2);
+	}
 }
 
 void

@@ -22,9 +22,9 @@ PROCESS idle;
 processList ready;
 static int nextPID = 1;
 int CurrentPID = 0;
-TTY terminals[4];
 int currentTTY = 0;
-int roundRobin = 0;
+int currentProcessTTY = 0;
+TTY terminals[4];
 user admin;
 extern int timeslot;
 
@@ -35,10 +35,9 @@ void startTerminal(int pos);
 void set_Process_ready(PROCESS * proc);
 void block_process(int pid);
 void awake_process(int pid);
-void Teta(int argc, char* argv[]);
-void Teta1(int argc, char* argv[]);
 void * malloc (int size);
 void kill(int pid);
+void sleep(int secs);
 
 void
 initializeIDT()
@@ -107,7 +106,7 @@ kmain()
 	return 1;
 }
 
-int CreateProcessAt(char* name, int (*process)(int,char**),int tty, int argc, char** argv, int stacklength, int priority, int isFront)
+int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, char** argv, int stacklength, int priority, int isFront)
 {
 	PROCESS * proc;
 	void * stack = malloc(stacklength);
@@ -124,6 +123,8 @@ int CreateProcessAt(char* name, int (*process)(int,char**),int tty, int argc, ch
 	proc->ESP = LoadStackFrame(process,argc,argv,(int)(stack + stacklength - 1), end_process);
 	proc->parent = CurrentPID;
 	proc->waitingPid = 0;
+	proc->sleep = 0;
+	proc->acum = priority + 1;
 	set_Process_ready(proc);	
 	return proc->pid;
 	
@@ -167,7 +168,6 @@ void set_Process_ready(PROCESS * proc)
 void block_process(int pid)
 {
 	processNode * aux;
-	processNode * proc;
 
 	timeslot = 1;					/*"yield"*/
 	if(ready == NULL)
@@ -176,8 +176,7 @@ void block_process(int pid)
 		return;
 	}
 	
-
-	printf("blocking process: %d\n", pid);
+	//printf("blocking process: %d\n", pid);
 	aux = ((processNode*)ready);
 	if(aux->process->pid == pid)
 	{
@@ -187,7 +186,7 @@ void block_process(int pid)
 			aux = ((processNode*)aux->next);
 		if(aux->next == NULL)
 		{
-			printf("error fatal!!\n");
+			//printf("error fatal!!\n");
 			_yield();
 			return;
 		}
@@ -197,18 +196,17 @@ void block_process(int pid)
 	return;
 }
 
-/*awakes all processes from the given tty that are blocked*/
+/*awakes the process with the given pid*/
 void awake_process(int pid)
 {
-	processNode * proc;
+	PROCESS * proc;
 
-	printf("awakening process: %d\n", pid);
-	proc = ((processNode*)ready);
-	while(proc != NULL)
+	proc = GetProcessByPID(pid);
+	if(proc->state == BLOCKED && !proc->waitingPid)
 	{
-		if(proc->process->pid == pid && proc->process->state == BLOCKED && !proc->process->waitingPid)
-			proc->process->state = READY;
-		proc = ((processNode*)proc->next);
+		proc->state = READY;
+		//printf("awakening process: %d\n", pid);
+		//printf("process %s state: %d\n", proc->name, proc->state);
 	}
 	return ;
 }
@@ -245,22 +243,57 @@ void end_process(void)
 	//printf("ending process: %d\n", proc->pid);
 	if(!proc->foreground)
 		printf("[%d]\tDone\t%s\n", proc->pid, proc->name);
-	parent = GetProcessByPID(proc->parent);
-	if(parent->waitingPid = proc->pid)
-	{
-		parent->waitingPid = 0;
-		if(parent->tty == currentTTY)
+	else{
+		parent = GetProcessByPID(proc->parent);
+		if(parent->waitingPid == proc->pid)
+		{
+			//printf("process. process pid: %d process parent:%d\n", proc->pid, proc->parent);
+			parent->waitingPid = 0;
+			//if(parent->tty == currentTTY)
 			awake_process(parent->pid);
+		}
 	}
-
-	proc->state = BLOCKED;
+	block_process(CurrentPID);
 	_Sti();
 	//while(1);
 }
 
 void kill(int pid)
 {
-	
+	PROCESS * proc;
+	PROCESS * parent;
+	processNode * aux;
+
+	_Cli();
+	if(pid == 0)
+	{
+		_Sti();
+		return;
+	}
+	//printf("killing %d\n", pid);
+	proc = GetProcessByPID(pid);
+	proc->sleep = 0;
+	//printf("pid: %d foreground:%d parent:%d\n", proc->pid, proc->foreground, proc->parent);
+	if(proc->foreground){
+		parent = GetProcessByPID(proc->parent);
+		//printf("parent: %d waitingpid:%d\n", parent->pid, parent->waitingPid);
+		if(parent->waitingPid == proc->pid)
+		{
+			parent->waitingPid = 0;
+			//printf("trying to awake pid %d tty %d\n", parent->pid, currentTTY);
+			if(parent->tty == currentTTY)
+				awake_process(parent->pid);
+		}
+	}
+	aux = ((processNode*)ready);
+	while(aux != NULL)
+	{
+		if(aux->process->parent == pid)
+			kill(aux->process->pid);
+		aux = ((processNode*)aux->next);
+	}
+	block_process(pid);
+	_Sti();
 }
 
 void startTerminal(int pos)
@@ -270,7 +303,7 @@ void startTerminal(int pos)
 	{
 		terminals[pos].terminal[i]=' ';
 		i++;
-		terminals[pos].terminal[i] = WHITE_TXT; //0x68
+		terminals[pos].terminal[i] = WHITE_TXT;
 	}
 	terminals[pos].buffer.actual_char = BUFFER_SIZE-1;
 	terminals[pos].buffer.first_char = 0;
@@ -278,39 +311,11 @@ void startTerminal(int pos)
 	terminals[pos].PID = pos + 1;
 }
 
-void Teta(int argc, char* argv[])
+void sleep(int secs)
 {
-	int i = 0, aux = 1000;
-	_Sti();
-	while(aux--)
-	{
-		_Sti();
-		printf("teta0\n");
-	}
-	block_process(1);
-	_Sti();
-	while(1)
-	{
-		_Sti();
-		printf("teta0 %d\n", i++);
-	}
+	PROCESS * proc;
+	
+	proc = GetProcessByPID(CurrentPID);
+	proc->sleep = 18 * secs;
+	block_process(CurrentPID);
 }
-
-void Teta1(int argc, char* argv[])
-{
-	int i = 0, aux = 2000;
-	_Sti();
-	printf("teta1\n");
-	while(aux--)
-	{
-		_Sti();
-		printf("teta1 %d\n", i++);
-	}
-	//awake_TTY_proc(currentTTY);
-	while(1)
-	{
-		_Sti();
-		printf("teta1\n");
-	}
-}
-
