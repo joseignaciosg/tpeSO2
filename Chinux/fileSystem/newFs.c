@@ -157,13 +157,16 @@ void init_inodemap();
 void init_filesystem( char * filesystem_name, masterBootRecord * mbr);
 void load_filesystem();
 
+void recursive_remove( iNode * current );
+int is_base_case( iNode * current );
+
 iNode * search_directory( char * name, iNode * node);
 void print_directories(iNode * current);
 
 
 iNode * parser_path(char * path, iNode * posible_inode);
 void makeDir(char *);
-void removeDir(char *);
+void rmDir(char *);
 void cd(char *);
 void ls(char *);
 
@@ -249,8 +252,15 @@ main(){
 	makeDir("comostas");
 	print_directories(superblock->root);
 	makeDir("Hola/Comocomo");
+	makeDir("Hola/lala");
+	makeDir("Hola/asd");
 	cd("Hola");
 	print_directories(current);
+	rmDir("asd");
+	print_directories(current);
+	//makeDir("/Hola/asd");
+	//print_directories(current);
+	
 
 	
 }
@@ -830,7 +840,7 @@ void makeDir(char * newName){
 				insert_directory(parcialName,makeDir_current);
 				makeDir_current = search_directory(parcialName,makeDir_current);
 			}else{
-				makeDir_current =posibleDir_current;
+				makeDir_current = posibleDir_current;
 			}
 			i=j-1;
 	
@@ -859,27 +869,85 @@ void ls(char * path){
 	
 }
 
-void rmdir( char * path){
-
-	return; 
+void rmDir( char * path){
 
 	int i;
 	iNode * posible_inode = current;
-	posible_inode = parser_path(path, posible_fsnode);
+	posible_inode = parser_path(path, posible_inode);
 
 	if ( posible_inode == NULL )
 	{
 		printf("Wrong name or path\n");
-	} 
+	} else if( posible_inode->identifier != DIRECTORY ){
+		printf("Its not a Directory\n");
+	}
 	else
 	{
-		//BORRADO RECURSIVO. 
-		//
-		// //TODO:REMOVER EL DIRECTORIO!
+		//BORRADO RECURSIVO.
+		recursive_remove(posible_inode);
+		//PARCHE .COM		
+		int inode_number = posible_inode->iNode_number;
+		int init_block = current->data.direct_blocks[0];
+		directoryEntry * dr = (directoryEntry*)calloc(sizeof(directoryEntry),96);
+		read_disk(vDisk->disk,init_block,dr,BLOCK_SIZE*12,0);
+		iNode * parent = fs_get_inode(dr[1].inode);
+		int father_init_block = current->data.direct_blocks[0];
+		directoryEntry * father_dr = (directoryEntry*)calloc(sizeof(directoryEntry),96);
+		read_disk(vDisk->disk,father_init_block,father_dr,BLOCK_SIZE*12,0);
+		int i;
+		for ( i = 0; i < 96; i++){
+			if ( father_dr[i].inode == inode_number){
+				char * empty_name = "0000000000000000000000000";				
+				dr[i].type = 0;
+				dr[i].inode = 0;
+				dr[i].lenght = 0;
+				strcpy(dr[i].name,empty_name);				
+				break;
+				//TODO: NOMBRE
+			}
+		}
+		write_disk(vDisk->disk,init_block,dr,BLOCK_SIZE*12,0);
 	}
 	return;
 }
 
+int is_base_case( iNode * current ){
+
+	if ( current->identifier != DIRECTORY ){
+		return 1;
+	}
+	int init_block = current->data.direct_blocks[0];
+	directoryEntry * dr = (directoryEntry*)calloc(sizeof(directoryEntry),96);
+	read_disk(vDisk->disk,init_block,dr,BLOCK_SIZE*12,0);
+	int i;
+	for ( i = 2; i < 96; i++){
+			if ( dr[i].type != 0 ){
+				return 0;
+			}
+	}
+	return 1;
+}
+void recursive_remove( iNode * current ){
+
+	if( is_base_case(current)){//CASOBASE QUE ES QUE EL DIRECTORIO ESTE VACIO O SEA UN ARCHIVO){
+		return;
+	}else{
+		int init_block = current->data.direct_blocks[0];
+		directoryEntry * dr = (directoryEntry*)calloc(sizeof(directoryEntry),96);
+		read_disk(vDisk->disk,init_block,dr,BLOCK_SIZE*12,0);
+		int i;
+		for ( i = 0; i < 96; i++){
+			if ( dr[i].type != 0 ){
+				recursive_remove(fs_get_inode(dr[i].inode));
+				dr[i].type = 0;
+				dr[i].inode = 0;
+				dr[i].lenght = 0;
+				//TODO: NOMBRE
+			}
+		}
+		write_disk(vDisk->disk,init_block,dr,BLOCK_SIZE*12,0);
+	}
+}
 
 void substr(char dest[], char src[], int offset, int len)
 {
