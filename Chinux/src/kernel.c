@@ -14,6 +14,7 @@
 #include "../include/kc.h"
 #include "../include/shell.h"
 #include "../include/utils.h"
+#include "../include/process.h"
 
 DESCR_INT idt[0x90]; /* IDT 144 positions*/
 IDTR idtr;			 /* IDTR */
@@ -24,20 +25,18 @@ static int nextPID = 1;
 int CurrentPID = 0;
 int currentTTY = 0;
 int currentProcessTTY = 0;
+int logPID;
 TTY terminals[4];
 user admin;
-extern int timeslot;
-
 PROCESS procesos[5];
 STACK_FRAME stacks[5];
 
-void startTerminal(int pos);
+extern int timeslot;
+extern int logoutPID;
+extern int actualKilled;
+
 void set_Process_ready(PROCESS * proc);
-void block_process(int pid);
-void awake_process(int pid);
 void * malloc (int size);
-void kill(int pid);
-void sleep(int secs);
 
 void
 initializeIDT()
@@ -94,10 +93,7 @@ kmain()
 	ready = NULL;
 	for(i = 0; i < 4; i++)
 		startTerminal(i);
-	CreateProcessAt("Shell0", (int(*)(int, char**))shell, 0, 0, (char**)0, 0x400, 2, 1);
-	CreateProcessAt("Shell1", (int(*)(int, char**))shell, 1, 1, (char**)0, 0x400, 2, 1);
-	CreateProcessAt("Shell2", (int(*)(int, char**))shell, 2, 2, (char**)0, 0x400, 2, 1);
-	CreateProcessAt("Shell3", (int(*)(int, char**))shell, 3, 3, (char**)0, 0x400, 2, 1);
+	logPID = CreateProcessAt("Login", (int(*)(int, char**))logUser, 0, 0, (char**)0, 0x400, 5, 1);
 	strcopy(admin.name, "chinux", str_len("chinux"));
 	strcopy(admin.password, "chinux", str_len("chinux"));
 	_Sti();
@@ -115,7 +111,7 @@ int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, c
 	proc->pid = nextPID++;
 	proc->foreground = isFront;
 	proc->priority = priority;
-	memcpy(proc->name,name,str_len(name) + 1);
+	memcpy(proc->name, name,str_len(name) + 1);
 	proc->state = READY;
 	proc->tty = tty;
 	proc->stacksize = stacklength;
@@ -186,7 +182,6 @@ void block_process(int pid)
 			aux = ((processNode*)aux->next);
 		if(aux->next == NULL)
 		{
-			//printf("error fatal!!\n");
 			_yield();
 			return;
 		}
@@ -206,7 +201,6 @@ void awake_process(int pid)
 	{
 		proc->state = READY;
 		//printf("awakening process: %d\n", pid);
-		//printf("process %s state: %d\n", proc->name, proc->state);
 	}
 	return ;
 }
@@ -247,15 +241,12 @@ void end_process(void)
 		parent = GetProcessByPID(proc->parent);
 		if(parent->waitingPid == proc->pid)
 		{
-			//printf("process. process pid: %d process parent:%d\n", proc->pid, proc->parent);
 			parent->waitingPid = 0;
-			//if(parent->tty == currentTTY)
 			awake_process(parent->pid);
 		}
 	}
 	block_process(CurrentPID);
 	_Sti();
-	//while(1);
 }
 
 void kill(int pid)
@@ -265,23 +256,22 @@ void kill(int pid)
 	processNode * aux;
 
 	_Cli();
-	if(pid == 0)
+	if(pid == 0 || pid == logoutPID)
 	{
 		_Sti();
 		return;
 	}
+	if(pid == CurrentPID)
+		actualKilled = 1;
 	//printf("killing %d\n", pid);
 	proc = GetProcessByPID(pid);
 	proc->sleep = 0;
-	//printf("pid: %d foreground:%d parent:%d\n", proc->pid, proc->foreground, proc->parent);
 	if(proc->foreground){
 		parent = GetProcessByPID(proc->parent);
-		//printf("parent: %d waitingpid:%d\n", parent->pid, parent->waitingPid);
 		if(parent->waitingPid == proc->pid)
 		{
 			parent->waitingPid = 0;
-			//printf("trying to awake pid %d tty %d\n", parent->pid, currentTTY);
-			if(parent->tty == currentTTY)
+			//if(parent->tty == currentTTY)
 				awake_process(parent->pid);
 		}
 	}
@@ -292,6 +282,7 @@ void kill(int pid)
 			kill(aux->process->pid);
 		aux = ((processNode*)aux->next);
 	}
+	proc->pid = -1;
 	block_process(pid);
 	_Sti();
 }
@@ -308,7 +299,7 @@ void startTerminal(int pos)
 	terminals[pos].buffer.actual_char = BUFFER_SIZE-1;
 	terminals[pos].buffer.first_char = 0;
 	terminals[pos].buffer.size = 0;
-	terminals[pos].PID = pos + 1;
+	//terminals[pos].PID = pos + 1;
 }
 
 void sleep(int secs)

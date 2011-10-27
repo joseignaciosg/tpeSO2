@@ -27,13 +27,6 @@
 #define TRUE 1
 #define FALSE 0
 
-/* 
- * for scanf tests 
- */
-enum scan_test {
-	NOTSCAN = 0, SCANSTRING, SCANINT, SCANDOUBLE
-};
-
 enum  state{ RUNNING = 0, READY, BLOCKED};
 typedef enum state process_state;
 

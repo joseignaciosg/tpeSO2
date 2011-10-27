@@ -30,9 +30,11 @@ extern char * vidmem;
 extern int scan_test;
 extern int currentTTY;
 extern int password;
+extern int usrName;
 extern int usrLoged;
 extern int CurrentPID;
 extern int currentProcessTTY;
+extern int logPID;
 
 void memcpy(char* a, char* b, int len);
 
@@ -161,6 +163,11 @@ void int_09() {
 		}
 		break;
 	case 0x1c: //enter pressed
+		if(usrName || password)
+		{
+			awake_process(logPID);
+			break;
+		}
 		if(terminals[currentTTY].buffer.size == 0 && usrLoged)
 		{
 			putc('\n');
@@ -220,9 +227,9 @@ void int_09() {
 			moveCursor();
 		}
 		keypressed = FALSE;
-	} else if (up_arrow_state && scan_test == NOTSCAN) {
+	} else if (up_arrow_state) {
 		showLastCommand();
-	} else if (down_arrow_state && scan_test == NOTSCAN) {
+	} else if (down_arrow_state) {
 		showPreviousCommand();
 	} else if (shift_state && ctrl_state && supr_state) {
 			reboot();

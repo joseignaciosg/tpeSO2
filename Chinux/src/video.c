@@ -35,7 +35,7 @@ k_clear_screen()
 		terminals[currentProcessTTY].terminal[i] = WHITE_TXT;
 		i++;
 	}
-	terminals[currentTTY].curpos = 0;
+	terminals[currentProcessTTY].curpos = 0;
 	return;
 }
 

@@ -60,4 +60,7 @@ void setup_IDT_entry(DESCR_INT *item, byte selector, dword offset, byte access,
  * ********************************************************************/
 void reboot();
 
+
+void startTerminal(int pos);
+
 #endif

@@ -16,34 +16,33 @@
 #include "../include/keyboard.h"
 #include "../include/video.h"
 #include "../include/kc.h"
+#include "../include/process.h"
 
 /***	Module Defines	***/
 #define STO_MAX  100
 
-int scan_test = NOTSCAN;
 char storedComm[STO_MAX][BUFFER_SIZE + 1];
+int arrow_pressed = FALSE;
 int sto_i = STO_MAX - 1;
 int sel_com = STO_MAX - 1;
-char arrow_pressed = FALSE;
 int usrLoged = 0;
 int usrName = 0;
 int password = 0;
+int top100[100] = {0};
+int logoutPID = -1;
 user usr;
 
-extern int currentTTY;
-extern TTY terminals[4];
-extern int CurrentPID;
-extern user admin;
-extern int currentProcessTTY;
-static int read_command();
-void prueba(int argc, char * argv[]);
-void prueba2(int argc, char * argv[]);
-void prioridad(int argc, char * argv[]);
-void top(int argc, char * argv[]);
-void logUser(void);
-void waitpid(int pid);
-int top100[100] = {0};
 extern int last100[100];
+extern int currentProcessTTY;
+extern int currentTTY;
+extern int CurrentPID;
+extern int logPID;
+extern TTY terminals[4];
+extern user admin;
+
+static int read_command();
+void logout(int argc, char * argv[]);
+
 
 char
 * splash_screen[25] = {
@@ -86,10 +85,7 @@ showHelp() {
 	printf("clear:         clears screen \n");
 	printf("getCPUSpeed:   returns the clock speed of the processor \n");
 	printf("Ctrl+Alt+Supr: reboots the system \n");
-	printf("printftest:    shows a test for printf function \n");
-	printf("scanint:       scanf integer test function \n");
-	printf("scandouble:    scanf double test function \n");
-	printf("scanstring:    scanf string test function");
+	printf("printftest:    shows a test for printf function");
 	return;
 }
 
@@ -199,7 +195,6 @@ parseBuffer() {
 	int invalidcom = FALSE;
 	int cleared_screen = FALSE;
 	int isFront = 1, pid;
-	scan_test = NOTSCAN;
 
 	scanf("%s", buffcopy);
 
@@ -237,18 +232,6 @@ parseBuffer() {
 		k_clear_screen();
 		cleared_screen = TRUE;
 		isFront = 0;
-	} else if (strcmp("scanint", buffcopy)) {
-		scan_test = SCANINT;
-		putc('\n');
-		printf("Type an integer: ");
-	} else if (strcmp("scandouble", buffcopy)) {
-		scan_test = SCANDOUBLE;
-		putc('\n');
-		printf("Type a double: ");
-	} else if (strcmp("scanstring", buffcopy)) {
-		scan_test = SCANSTRING;
-		putc('\n');
-		printf("Type a string: ");
 	} else if (strcmp("printftest", buffcopy)) {
 		putc('\n');
 		printfTest();
@@ -263,7 +246,7 @@ parseBuffer() {
 		pid = CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(strcmp("prueba2", buffcopy)){
 		//putc('\n');
-		pid = CreateProcessAt("Prueba2", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
+		pid = CreateProcessAt("Prueba2", (int(*)(int, char**))prueba2, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(strcmp("prioridad0", buffcopy)){
 		pid = CreateProcessAt("prioridad0", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 0, isFront);
 	}else if(strcmp("prioridad1", buffcopy)){
@@ -274,6 +257,8 @@ parseBuffer() {
 		pid = CreateProcessAt("prioridad3", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 3, isFront);
 	}else if(strcmp("prioridad4", buffcopy)){
 		pid = CreateProcessAt("prioridad4", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 4, isFront);
+	}else if(strcmp("logout", buffcopy)){
+		logoutPID = pid = CreateProcessAt("logout", (int(*)(int, char**))logout, currentProcessTTY, 0, (char**)0, 0x400, 4, isFront);	/*puedo borrar pid = ??*/
 	}else if(strcmp("top", buffcopy)){
 		pid = CreateProcessAt("Top", (int(*)(int, char**))top, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(buffcopy[0] == 'k' && buffcopy[1] == 'i' && buffcopy[2] == 'l' && buffcopy[3] == 'l' && buffcopy[4] == ' '){
@@ -286,7 +271,7 @@ parseBuffer() {
 		isFront = 0;
 	}
 
-	if (terminals[currentProcessTTY].curpos > 80 * 24 * 2 && scan_test == NOTSCAN) {
+	if (terminals[currentProcessTTY].curpos > 80 * 24 * 2) {
 		scrolldown();
 		if (invalidcom && buffcopy[0]) {
 			invalidcom = FALSE;
@@ -297,7 +282,7 @@ parseBuffer() {
 			invalidcom = FALSE;
 			putc('\n');
 			printf("Invalid command: %s\n", buffcopy);
-		} else if (scan_test == NOTSCAN) {
+		} else{
 			putc('\n');
 		}
 	}
@@ -309,6 +294,19 @@ parseBuffer() {
 	return isFront;
 }
 
+void logout(int argc, char * argv[])
+{
+	int i;
+	//printf("loggin out...\n");
+	for(i = 0; i < 4; i++)
+		kill(terminals[i].PID);
+	usrLoged = 0;
+	logPID = CreateProcessAt("logUsr", (int(*)(int, char**))logUser, currentProcessTTY, 0, (char**)0, 0x400, 4, 1);
+	//printf("loggin out...\n");
+	_Sti();
+}
+
+
 void prioridad(int argc, char * argv[])
 {
 	_Sti();
@@ -319,10 +317,10 @@ void prioridad(int argc, char * argv[])
 void prueba2(int argc, char * argv[])
 {
 	int i = 50000000;
+	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, 1);
+	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, 1);
+	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, 1);
 	_Sti();
-	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, 1);
-	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, 1);
-	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentTTY, 0, (char**)0, 0x400, 2, 1);
 	printf("prueba2\n");
 	while(i--)
 		;
@@ -335,7 +333,7 @@ void prueba(int argc, char * argv[])
 	int i = 10000;
 	_Sti();
 	printf("prueba\n");
-	while(i--)
+	while(TRUE)
 		;//printf("prueba\n");
 	return;
 }
@@ -343,7 +341,8 @@ void prueba(int argc, char * argv[])
 
 void top(int argc, char * argv[])
 {
-	int i, j;
+	int i, length;
+	PROCESS * proc;
 	_Sti();
 	while(TRUE)
 	{
@@ -351,17 +350,26 @@ void top(int argc, char * argv[])
 			top100[i] = 0;
 		for(i = 0; i < 100; i++)
 			top100[last100[i]]++;
-		printf("pid   %%cpu\n");
+		printf("Process Name        %%cpu       PID\n");
 		for(i = 0; i < 100; i++)
 			if(top100[i] != 0)
-				printf("%d     %d\n", i, top100[i]);
-		sleep(2);
+			{
+				length = 20;
+				proc = GetProcessByPID(i);
+				printf("%s", proc->name);
+				length -= str_len(proc->name);
+				while(length--)
+					putc(' ');
+				printf("%d         %d\n", top100[i], i);				
+			}
+		sleep(3);
+		k_clear_screen();
 	}
 }
 
-void
-logUser(void)
+void logUser(void)
 {
+	int i;
 	while(!usrLoged)
 	{
 		printf("username: ");
@@ -379,16 +387,20 @@ logUser(void)
 		password = 0;
 		printf("\n");
 	}
+	terminals[0].PID = CreateProcessAt("Shell0", (int(*)(int, char**))shell, 0, 0, (char**)0, 0x400, 2, 1);
+	terminals[1].PID = CreateProcessAt("Shell1", (int(*)(int, char**))shell, 1, 0, (char**)0, 0x400, 2, 1);
+	terminals[2].PID = CreateProcessAt("Shell2", (int(*)(int, char**))shell, 2, 0, (char**)0, 0x400, 2, 1);
+	terminals[3].PID = CreateProcessAt("Shell3", (int(*)(int, char**))shell, 3, 0, (char**)0, 0x400, 2, 1);
+	_Sti();
+	//printf("loggin in...\n");
 	return;
 }
 
 void
 shell(int argc, char * argv[]) {
 	int command, pid;
-
-	if(currentTTY != argc)
+	if(currentProcessTTY != currentTTY)
 		block_process(CurrentPID);
-	logUser();
 	printShellLine();
 	moveCursor();
 	while (TRUE) {

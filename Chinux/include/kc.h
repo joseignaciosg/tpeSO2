@@ -16,14 +16,16 @@ void k_clear_screen();
 /* Inicializa la entrada del IDT */
 void setup_IDT_entry (DESCR_INT *item, byte selector, dword offset, byte access, byte cero);
 
+
 PROCESS * GetProcessByPID(int pid);
-void end_process(void);
 int Idle(int argc, char* argv[]);
-int CreateProcessAt(char*,int (*process)(int,char**),int tty, int argc, char** argv, int stacklength, int priority, int isFront);
-void Destroy(int PID);
-void Teta(int argc, char* argv[]);
-void Teta1(int argc, char* argv[]);
-void Teta2(int argc, char* argv[]);
+int CreateProcessAt(char * name,int (*process)(int , char **), int tty, int argc, char ** argv, int stacklength, int priority, int isFront);
 void SetupScheduler(void);
+void block_process(int pid);
+void awake_process(int pid);
+void kill(int pid);
+void sleep(int secs);
+void waitpid(int pid);
+void end_process(void);
 
 #endif

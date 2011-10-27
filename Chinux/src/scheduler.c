@@ -13,13 +13,14 @@
 int last100[100]={0};
 int counter100;
 int FirstTime = 1;
-extern int CurrentPID;
-extern PROCESS idle;
-extern processList ready;
-
+int actualKilled = 0;
 int timeslot = TIMESLOT;
+
+extern int CurrentPID;
 extern int currentProcessTTY;
 extern int currentTTY;
+extern PROCESS idle;
+extern processList ready;
 
 void SaveESP (int);
 PROCESS * GetNextProcess (void);
@@ -54,14 +55,14 @@ void SaveESP (int ESP)
 {
 	timeslot = TIMESLOT;
 	PROCESS* temp;
-	if (!FirstTime)
+	if (!FirstTime && !actualKilled)
 	{
 		temp = GetProcessByPID(CurrentPID);
 		temp->ESP = ESP;
 		if(temp->state == RUNNING)
 			temp->state = READY;
 	}
-	FirstTime = 0;
+	FirstTime = actualKilled = 0;
 	return;
 }
 
