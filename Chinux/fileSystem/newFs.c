@@ -170,6 +170,17 @@ void rmDir(char *);
 void cd(char *);
 void ls(char *);
 
+/* VFS Functions Declartions */
+
+int creat (const char *filename, mode_t mode);
+int open (const char *filename, int flags, mode_t mode]);
+int read(int fd, char *buf, int n);
+int write(int fd, char *buf, int n);
+int close(int fd);
+
+void insert_file_entry(iNode * newFile, iNode * current, char * name);
+void insert_file( char * name, size_t mode, iNode * current );
+
 /*FS*/
 
 iNode * fs_creat_inode(int identifier, int mode, int size, iNode * current);
@@ -549,7 +560,6 @@ dataStream * fs_init_dataStream(int size, int id, int number, iNode * current){
 			//TODO: Implementar una seccion donde se maneje si no encuentra archiva.		
 		}
 	}
-
 	return ret;
 }
 
@@ -661,6 +671,36 @@ void insert_directory_entry(iNode * newDirectory, iNode * current, char * name){
 }
 
 
+void insert_file( char * name, size_t mode, iNode * current ){
+	//TODO: CRear el inodo de directorio con todas sus entradas.
+	iNode * newFile = (iNode *)malloc(sizeof(iNode));
+	newFile =  fs_creat_inode(DIRECTORY,mode,512,current);
+	fs_insert_inode(newFile);
+
+	insert_file_entry(newFile,current,name);
+	//TODO: Actualizar el inodo actual para que tenga la informacion del nuevo.
+	//TODO: No chequea que no alla repetidos.
+}
+
+void insert_file_entry(iNode * newFile, iNode * current, char * name){
+	int init_block = current->data.direct_blocks[0];
+	directoryEntry * dr = (directoryEntry*)calloc(sizeof(directoryEntry),96);
+	read_disk(vDisk->disk,init_block,dr,BLOCK_SIZE*12,0);
+	int i;
+	for ( i = 0; i < 96; i++){
+		if ( dr[i].type == 0 ){
+			dr[i].type = FILE;
+			dr[i].inode = newFile->iNode_number;
+			dr[i].lenght = 0;
+			memcpy(dr[i].name,name,strlen(name));
+			break;
+		}
+	}
+	write_disk(vDisk->disk,init_block,dr,BLOCK_SIZE*12,0);
+
+	return;
+	
+}
 
 /*
  *
@@ -949,11 +989,91 @@ void recursive_remove( iNode * current ){
 	}
 }
 
+int do_creat(const char * filename, mode_t mode, iNode * current){
+
+	int i;
+	insert_file(filename,mode,current);
+	return 0;//TODO:Aca devolver lo que le sirva al FDs
+		
+}
+
+void write_inode(iNode * inode, char * buf, int n){	
+		
+	//Me fijo si hay lugar para seguir insertando en el bloque.
+	int size_file = inode->size;
+	int newrequeried_blocks = n/BLOCK_SIZE + 1;
+	int i,lastblock;
+
+	int freeblocks = search_free_blocks( inode->data.direct_blocks[1] + newrequeried_blocks );
+	
+	
+	for( i = 0; inode->data.direct_blocks[i] != 0; i+=2){
+		lastblock = inode->data.direct_blocks[i];
+	}
+	
+		
+	//Busco a partir del que esta si hay lugar.
+	//Si no hay lugar tengo que volver a buscar la cantidad que necesito y reasignar.
+	//copiar todo en disco.	
+	
+}
+
+int do_write(int fd, char * buf, int n){
+	
+	int inode = 2;//buscar en fd el inodo
+
+	iNode * inode =	get_inode(2);
+	write_inode(inode, buf,n);
+	
+}
+
+int do_read(){
+
+}
+
+
+
+
+
+/*
+ *
+ *	Auxiliary Functions
+ *
+ */
+
 void substr(char dest[], char src[], int offset, int len)
 {
 	int i;
 	for(i = 0; i < len && src[offset + i] != '\0'; i++)
 	dest[i] = src[i + offset];
 	dest[i] = '\0';
+}
+
+/*
+ *
+ *	Virtualization Functions
+ *
+ */
+
+
+
+int creat (const char *filename, mode_t mode){
+	//do_creat(filename,mode);
+}
+
+int open (const char *filename, int flags[, mode_t mode]){
+	return 0;
+}
+
+int read(int fd, char *buf, int n){
+	return 0;
+}
+
+int write(int fd, char *buf, int n){
+	return 0;
+}
+
+int close(int fd){
+	return 0;
 }
 
