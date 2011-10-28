@@ -28,7 +28,7 @@ int sel_com = STO_MAX - 1;
 int usrLoged = 0;
 int usrName = 0;
 int password = 0;
-int top100[100] = {0};
+processCPU top100[100];
 int logoutPID = -1;
 user usr;
 
@@ -341,27 +341,35 @@ void prueba(int argc, char * argv[])
 
 void top(int argc, char * argv[])
 {
-	int i, length;
+	int i, j, length;
 	PROCESS * proc;
 	_Sti();
 	while(TRUE)
 	{
 		for(i = 0; i < 100; i++)
-			top100[i] = 0;
+		{
+			top100[i].pid = -1;
+			top100[i].cpu = 0;
+		}
 		for(i = 0; i < 100; i++)
-			top100[last100[i]]++;
+		{
+			j = 0;
+			while(top100[j].pid != last100[i] && top100[j].pid != -1)
+				j++;
+			top100[j].pid = last100[i];
+			top100[j].cpu++;
+		}
 		printf("Process Name        %%cpu       PID\n");
-		for(i = 0; i < 100; i++)
-			if(top100[i] != 0)
-			{
-				length = 20;
-				proc = GetProcessByPID(i);
-				printf("%s", proc->name);
-				length -= str_len(proc->name);
-				while(length--)
-					putc(' ');
-				printf("%d         %d\n", top100[i], i);				
-			}
+		for(j = 0; top100[j].pid != -1; j++)
+		{
+			length = 20;
+			proc = GetProcessByPID(top100[j].pid);
+			printf("%s", proc->name);
+			length -= str_len(proc->name);
+			while(length--)
+				putc(' ');
+			printf("%d         %d\n", top100[j].cpu, top100[j].pid);
+		}
 		sleep(3);
 		k_clear_screen();
 	}

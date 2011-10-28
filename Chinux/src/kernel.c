@@ -34,6 +34,7 @@ STACK_FRAME stacks[5];
 extern int timeslot;
 extern int logoutPID;
 extern int actualKilled;
+extern int last100[100];
 
 void set_Process_ready(PROCESS * proc);
 void * malloc (int size);
@@ -107,7 +108,7 @@ int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, c
 	PROCESS * proc;
 	void * stack = malloc(stacklength);
 	proc = malloc(sizeof(PROCESS));
-	proc->name = (char*)malloc(10);
+	proc->name = (char*)malloc(15);
 	proc->pid = nextPID++;
 	proc->foreground = isFront;
 	proc->priority = priority;
@@ -132,7 +133,6 @@ int LoadStackFrame(int(*process)(int,char**),int argc,char** argv, int bottom, v
 	frame->EBP = 0;
 	frame->EIP = (int)process;
 	frame->CS = 0x08;
-	
 	frame->EFLAGS = 0;
 	frame->retaddr = cleaner;
 	frame->argc = argc;
@@ -211,6 +211,7 @@ PROCESS * GetProcessByPID (int pid)
 	processNode * aux;
 	if(pid == 0 || ready == NULL)
 		return &idle;
+
 	aux = ((processNode*)ready);
 	while(aux != NULL && aux->process->pid != pid)
 		aux = ((processNode*)aux->next);
@@ -230,9 +231,11 @@ void end_process(void)
 {
 	PROCESS * proc;
 	PROCESS * parent;
+	processNode * aux;
+	int i;
 	
 	_Cli();
-
+	actualKilled = 1;/*new*/
 	proc = GetProcessByPID(CurrentPID);
 	//printf("ending process: %d\n", proc->pid);
 	if(!proc->foreground)
@@ -245,7 +248,18 @@ void end_process(void)
 			awake_process(parent->pid);
 		}
 	}
-	block_process(CurrentPID);
+	//block_process(CurrentPID); /*new*/
+	aux = ((processNode *)ready);
+	if(aux->process->pid == CurrentPID);
+		ready = aux->next;
+
+	while(aux->next != NULL && ((processNode *)aux->next)->process->pid != CurrentPID)
+		aux = ((processNode *)aux->next);
+	if(aux->next !=  NULL)
+		aux->next = ((processNode*)aux->next)->next;
+	for(i = 0; i < 100; i++)
+		if(last100[i] == proc->pid)
+			last100[i] = -1;
 	_Sti();
 }
 

@@ -136,6 +136,11 @@ typedef struct{
 	char password[20];
 }user;
 
+typedef struct{
+	int pid;
+	int cpu;
+}processCPU;
+
 
 #endif
 

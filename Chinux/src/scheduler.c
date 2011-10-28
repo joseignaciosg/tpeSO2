@@ -11,7 +11,7 @@
 #include "../include/kc.h"
 
 int last100[100]={0};
-int counter100;
+int counter100 = 0;
 int FirstTime = 1;
 int actualKilled = 0;
 int timeslot = TIMESLOT;
@@ -137,6 +137,7 @@ void SetupScheduler(void)
 	idle.pid = 0;
 	idle.foreground = 0;
 	idle.priority = 4;
+	idle.name = (char*)malloc(10);
 	memcpy(idle.name, "Idle", str_len("Idle") + 1);
 	idle.state = READY;
 	idle.tty = 0;
