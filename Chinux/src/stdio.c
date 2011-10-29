@@ -74,7 +74,6 @@ void int_80(size_t call, size_t fd, char *buffer, size_t count) {
 			writeScreen(buffer, count);
 		}
 		break;
-
 	case ERASE:
 		if (fd == STDOUT) {
 			eraseScreen(buffer, count);

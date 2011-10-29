@@ -22,7 +22,7 @@ IDTR idtr;			 /* IDTR */
 
 PROCESS idle;
 processList ready;
-static int nextPID = 1;
+int nextPID = 1;
 int CurrentPID = 0;
 int currentTTY = 0;
 int currentProcessTTY = 0;
@@ -47,9 +47,10 @@ initializeIDT()
 	setup_IDT_entry (&idt[0x08], 0x08, (dword)&_int_08_hand, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x09], 0x08, (dword)&_int_09_hand, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x80], 0x08, (dword)&_int_80_hand, ACS_INT, 0);
+	setup_IDT_entry (&idt[0x79], 0x08, (dword)&_int_79_hand, ACS_INT, 0);/*for block_process and kill*/
 	idtr.base = 0;
-	idtr.base +=(dword) &idt;
-	idtr.limit = sizeof(idt)-1;
+	idtr.base += (dword)&idt;
+	idtr.limit = sizeof(idt) - 1;
 	_lidt (&idtr);
 }
 
@@ -106,7 +107,7 @@ kmain()
 	return 1;
 }
 
-int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, char** argv, int stacklength, int priority, int isFront)
+/*int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, char** argv, int stacklength, int priority, int isFront)
 {
 	PROCESS * proc;
 	void * stack = malloc(stacklength);
@@ -128,7 +129,33 @@ int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, c
 	set_Process_ready(proc);	
 	return proc->pid;
 	
+}*/
+
+int CreateProcessAt_in_kernel(createProcessParam * param)
+{
+	PROCESS * proc;
+	void * stack = malloc(param->stacklength);
+	proc = malloc(sizeof(PROCESS));
+	proc->name = (char*)malloc(15);
+	proc->pid = nextPID;
+	proc->foreground = param->isFront;
+	proc->priority = param->priority;
+	memcpy(proc->name, param->name,str_len(param->name) + 1);
+	proc->state = READY;
+	proc->tty = param->tty;
+	proc->stacksize = param->stacklength;
+	proc->stackstart = (int)stack;
+	proc->ESP = LoadStackFrame(param->process,param->argc,param->argv,(int)(stack + param->stacklength - 1), end_process);
+	proc->parent = CurrentPID;
+	proc->waitingPid = 0;
+	proc->sleep = 0;
+	proc->acum = param->priority + 1;
+	set_Process_ready(proc);
+	return proc->pid;
+
 }
+
+
 
 int LoadStackFrame(int(*process)(int,char**),int argc,char** argv, int bottom, void(*cleaner)())
 {
@@ -164,7 +191,7 @@ void set_Process_ready(PROCESS * proc)
 	return;
 }
 
-void block_process(int pid)
+void block_process_in_kernel(int pid)
 {
 	processNode * aux;
 
@@ -238,7 +265,7 @@ void end_process(void)
 	int i;
 	
 	_Cli();
-	actualKilled = 1;/*new*/
+	actualKilled = 1;
 	proc = GetProcessByPID(CurrentPID);
 	//printf("ending process: %d\n", proc->pid);
 	if(!proc->foreground)
@@ -251,29 +278,35 @@ void end_process(void)
 			awake_process(parent->pid);
 		}
 	}
-	//block_process(CurrentPID); /*new*/
-	aux = ((processNode *)ready);
-	if(aux->process->pid == CurrentPID);
-		ready = aux->next;
 
-	while(aux->next != NULL && ((processNode *)aux->next)->process->pid != CurrentPID)
-		aux = ((processNode *)aux->next);
-	if(aux->next !=  NULL)
-		aux->next = ((processNode*)aux->next)->next;
+	aux = ((processNode *)ready);
+	if(aux->process->pid == CurrentPID)
+		ready = aux->next;
+	else {
+		while(aux->next != NULL && ((processNode *)aux->next)->process->pid != CurrentPID)
+			aux = ((processNode *)aux->next);
+		if(aux->next !=  NULL)
+			aux->next = ((processNode*)aux->next)->next;
+	}
+
 	for(i = 0; i < 100; i++)
 		if(last100[i] == proc->pid)
 			last100[i] = -1;
+
 	_Sti();
+
+	return ;
 }
 
-void kill(int pid)
+void kill_in_kernel(int pid)
 {
 	PROCESS * proc;
 	PROCESS * parent;
 	processNode * aux;
+	int i;
 
 	_Cli();
-	if(pid == 0 || pid == logoutPID)
+	if(pid == 0 || pid == logoutPID || pid == logPID)
 	{
 		_Sti();
 		return;
@@ -282,16 +315,15 @@ void kill(int pid)
 		actualKilled = 1;
 	//printf("killing %d\n", pid);
 	proc = GetProcessByPID(pid);
-	proc->sleep = 0;
 	if(proc->foreground){
 		parent = GetProcessByPID(proc->parent);
 		if(parent->waitingPid == proc->pid)
 		{
 			parent->waitingPid = 0;
-			//if(parent->tty == currentTTY)
-				awake_process(parent->pid);
+			awake_process(parent->pid);
 		}
 	}
+
 	aux = ((processNode*)ready);
 	while(aux != NULL)
 	{
@@ -299,9 +331,39 @@ void kill(int pid)
 			kill(aux->process->pid);
 		aux = ((processNode*)aux->next);
 	}
-	proc->pid = -1;
-	block_process(pid);
+
+	aux = ((processNode *)ready);
+	if(aux->process->pid == pid)
+		ready = aux->next;
+	else {
+		while(aux->next != NULL && ((processNode *)aux->next)->process->pid != pid)
+			aux = ((processNode *)aux->next);
+		if(aux->next !=  NULL)
+			aux->next = ((processNode*)aux->next)->next;
+	}
+
+	for(i = 0; i < 100; i++)
+		if(last100[i] == proc->pid)
+			last100[i] = -1;
+
 	_Sti();
+
+	return ;
+}
+
+void int_79(size_t call, size_t param){
+	switch(call){
+	case CREATE:/* create function */
+		CreateProcessAt_in_kernel((createProcessParam *)param);
+		break;
+	case KILL: /* kill function */
+		kill_in_kernel(param);/*param == pid*/
+		break;
+	case BLOCK:/* block function */
+		block_process_in_kernel(param);/*param == pid*/
+		break;
+
+	}
 }
 
 void startTerminal(int pos)
@@ -322,7 +384,6 @@ void startTerminal(int pos)
 void sleep(int secs)
 {
 	PROCESS * proc;
-	
 	proc = GetProcessByPID(CurrentPID);
 	proc->sleep = 18 * secs;
 	block_process(CurrentPID);

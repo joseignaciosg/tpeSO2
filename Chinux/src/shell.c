@@ -113,7 +113,7 @@ showLastCommand() {
 	int aux;
 	int size;
 	int i, k;
-	if (sel_com > 0) {
+	if (sel_com > 0 && usrLoged) {
 		if (arrow_pressed) {
 			if (sel_com == STO_MAX - 1)
 				aux = 0;
@@ -148,7 +148,7 @@ showPreviousCommand() {
 	int aux;
 	int size;
 	int i, k;
-	if (sel_com < sto_i + 1) {
+	if (sel_com < sto_i + 1 && usrLoged) {
 		if (arrow_pressed) {
 			aux = sel_com;
 			size = str_len(storedComm[aux]);
@@ -196,7 +196,7 @@ int
 parseBuffer() {
 	int invalidcom = FALSE;
 	int cleared_screen = FALSE;
-	int isFront = 1, pid;
+	int isFront = 1, pid, i;
 
 	scanf("%s", buffcopy);
 
@@ -262,6 +262,17 @@ parseBuffer() {
 	}else if(strcmp("prioridad4", buffcopy)){
 		pid = CreateProcessAt("prioridad4", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 4, isFront);
 	}else if(strcmp("logout", buffcopy)){
+		int aux = currentProcessTTY;
+		clearBuffcopy();
+		for(i = 0; i < 4; i++)
+		{
+			terminals[i].buffer.first_char = terminals[i].buffer.actual_char + 1 % BUFFER_SIZE;
+			terminals[i].buffer.size = 0;
+			currentProcessTTY = i;
+			k_clear_screen();
+			cleared_screen = TRUE;
+		}
+		currentProcessTTY = aux;
 		logoutPID = pid = CreateProcessAt("logout", (int(*)(int, char**))logout, currentProcessTTY, 0, (char**)0, 0x400, 4, isFront);	/*puedo borrar pid = ??*/
 	}else if(strcmp("top", buffcopy)){
 		pid = CreateProcessAt("Top", (int(*)(int, char**))top, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
@@ -270,6 +281,8 @@ parseBuffer() {
 		scanfi(&pid, &buffcopy[5]);
 		kill(pid);
 		isFront = 0;
+	}else if(strcmp("createusr", buffcopy)){
+		//pid = CreateProcessAt("Top", (int(*)(int, char**))top, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else {
 
 		invalidcom = TRUE;
@@ -302,12 +315,10 @@ parseBuffer() {
 void logout(int argc, char * argv[])
 {
 	int i;
-	//printf("loggin out...\n");
 	for(i = 0; i < 4; i++)
 		kill(terminals[i].PID);
 	usrLoged = 0;
 	logPID = CreateProcessAt("logUsr", (int(*)(int, char**))logUser, currentProcessTTY, 0, (char**)0, 0x400, 4, 1);
-	//printf("loggin out...\n");
 	_Sti();
 }
 
@@ -346,7 +357,7 @@ void prueba(int argc, char * argv[])
 
 void top(int argc, char * argv[])
 {
-	int i, j, length;
+	int i, j, length, pos;
 	PROCESS * proc;
 	_Sti();
 	while(TRUE)
@@ -356,15 +367,25 @@ void top(int argc, char * argv[])
 			top100[i].pid = -1;
 			top100[i].cpu = 0;
 		}
+		pos = 0;
 		for(i = 0; i < 100; i++)
 		{
-			j = 0;
-			while(top100[j].pid != last100[i] && top100[j].pid != -1)
-				j++;
-			top100[j].pid = last100[i];
-			top100[j].cpu++;
+			if(last100[i] == -1)
+			{
+				if(top100[pos].pid == -1)
+					pos = 0;
+				top100[pos].cpu++;
+				pos++;
+			}
+			else{
+				j = 0;
+				while(top100[j].pid != last100[i] && top100[j].pid != -1)
+					j++;
+				top100[j].pid = last100[i];
+				top100[j].cpu++;
+			}
 		}
-		printf("Process Name        %%cpu       PID\n");
+		printf("Process Name        cpu       PID\n");
 		for(j = 0; top100[j].pid != -1; j++)
 		{
 			length = 20;

@@ -104,6 +104,12 @@ PROCESS * GetNextTask()
 		return &idle;
 	}
 
+	/*if(FirstTime || actualKilled)
+	{
+		flag = 1;
+		FirstTime = actualKilled = 0;
+	}*/
+
 	while(aux != NULL)
 	{
 		if(aux->process->pid == CurrentPID)
@@ -119,7 +125,6 @@ PROCESS * GetNextTask()
 				return aux->process;
 		}
 	}
-
 	return &idle;
 
 }

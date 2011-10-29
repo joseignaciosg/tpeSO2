@@ -24,6 +24,13 @@
 #define READ  5
 #define ERASE 6
 
+/*
+ * Calls (for int_79 function)
+ */
+#define KILL 7
+#define BLOCK 8
+#define CREATE 9
+
 #define TRUE 1
 #define FALSE 0
 
@@ -140,6 +147,20 @@ typedef struct{
 	int pid;
 	int cpu;
 }processCPU;
+
+typedef struct{
+	char* name;
+	int (*process)(int,char**);
+	int tty;
+	int argc;
+	char** argv;
+	int stacklength;
+	int priority;
+	int isFront;
+}createProcessParam;
+
+
+
 
 
 #endif
