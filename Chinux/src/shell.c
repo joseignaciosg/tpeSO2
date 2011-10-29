@@ -15,7 +15,6 @@
 #include "../include/utils.h"
 #include "../include/keyboard.h"
 #include "../include/video.h"
-#include "../include/kc.h"
 #include "../include/process.h"
 #include "../include/fs.h"
 #include "../include/atadisk.h"

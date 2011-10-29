@@ -34,6 +34,7 @@
 #define WAIT_PID 11
 #define TERM_SIZE 12
 #define TERM_CURPOS 13
+#define CURR_TTY 14
 
 #define TRUE 1
 #define FALSE 0
