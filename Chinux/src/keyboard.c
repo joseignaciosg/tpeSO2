@@ -178,7 +178,7 @@ void int_09() {
 
 	default:
 
-		if( new_scan_code == 0x2E && ctrl_state)
+		if(new_scan_code == 0x2E && ctrl_state)
 		{
 			kill(CurrentPID);
 			break;

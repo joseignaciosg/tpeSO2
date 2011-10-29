@@ -46,8 +46,8 @@ initializeIDT()
 	setup_IDT_entry (&idt[0x09], 0x08, (dword)&_int_09_hand, ACS_INT, 0);
 	setup_IDT_entry (&idt[0x80], 0x08, (dword)&_int_80_hand, ACS_INT, 0);
 	idtr.base = 0;
-	idtr.base +=(dword) &idt;
-	idtr.limit = sizeof(idt)-1;
+	idtr.base += (dword)&idt;
+	idtr.limit = sizeof(idt) - 1;
 	_lidt (&idtr);
 }
 
@@ -235,7 +235,7 @@ void end_process(void)
 	int i;
 	
 	_Cli();
-	actualKilled = 1;/*new*/
+	actualKilled = 1;
 	proc = GetProcessByPID(CurrentPID);
 	//printf("ending process: %d\n", proc->pid);
 	if(!proc->foreground)
@@ -248,19 +248,24 @@ void end_process(void)
 			awake_process(parent->pid);
 		}
 	}
-	//block_process(CurrentPID); /*new*/
-	aux = ((processNode *)ready);
-	if(aux->process->pid == CurrentPID);
-		ready = aux->next;
 
-	while(aux->next != NULL && ((processNode *)aux->next)->process->pid != CurrentPID)
-		aux = ((processNode *)aux->next);
-	if(aux->next !=  NULL)
-		aux->next = ((processNode*)aux->next)->next;
+	aux = ((processNode *)ready);
+	if(aux->process->pid == CurrentPID)
+		ready = aux->next;
+	else {
+		while(aux->next != NULL && ((processNode *)aux->next)->process->pid != CurrentPID)
+			aux = ((processNode *)aux->next);
+		if(aux->next !=  NULL)
+			aux->next = ((processNode*)aux->next)->next;
+	}
+
 	for(i = 0; i < 100; i++)
 		if(last100[i] == proc->pid)
 			last100[i] = -1;
+
 	_Sti();
+
+	return ;
 }
 
 void kill(int pid)
@@ -268,9 +273,10 @@ void kill(int pid)
 	PROCESS * proc;
 	PROCESS * parent;
 	processNode * aux;
+	int i;
 
 	_Cli();
-	if(pid == 0 || pid == logoutPID)
+	if(pid == 0 || pid == logoutPID || pid == logPID)
 	{
 		_Sti();
 		return;
@@ -279,16 +285,15 @@ void kill(int pid)
 		actualKilled = 1;
 	//printf("killing %d\n", pid);
 	proc = GetProcessByPID(pid);
-	proc->sleep = 0;
 	if(proc->foreground){
 		parent = GetProcessByPID(proc->parent);
 		if(parent->waitingPid == proc->pid)
 		{
 			parent->waitingPid = 0;
-			//if(parent->tty == currentTTY)
-				awake_process(parent->pid);
+			awake_process(parent->pid);
 		}
 	}
+
 	aux = ((processNode*)ready);
 	while(aux != NULL)
 	{
@@ -296,9 +301,24 @@ void kill(int pid)
 			kill(aux->process->pid);
 		aux = ((processNode*)aux->next);
 	}
-	proc->pid = -1;
-	block_process(pid);
+
+	aux = ((processNode *)ready);
+	if(aux->process->pid == pid)
+		ready = aux->next;
+	else {
+		while(aux->next != NULL && ((processNode *)aux->next)->process->pid != pid)
+			aux = ((processNode *)aux->next);
+		if(aux->next !=  NULL)
+			aux->next = ((processNode*)aux->next)->next;
+	}
+
+	for(i = 0; i < 100; i++)
+		if(last100[i] == proc->pid)
+			last100[i] = -1;
+
 	_Sti();
+
+	return ;
 }
 
 void startTerminal(int pos)
