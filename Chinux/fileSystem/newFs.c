@@ -797,15 +797,6 @@ void recursive_remove( iNode * current ){
 	}
 }
 
-iNode * do_creat(char * filename, int mode, iNode * current){
-
-	int i;
-	iNode * ret = insert_file(filename,mode,current);
-	return ret;//TODO:Aca devolver lo que le sirva al FDs
-		
-}
-
-
 
 void write_inode(iNode * inode, char * buf, int n){	
 		
@@ -863,22 +854,70 @@ int read_inode(iNode * inode, char * buf, int n){
 		memcpy(buf,receive_buffer,n);
 	}
 
-	return 0;	
+	return n;//CAMBIAR	
 
 }
 
+iNode * do_creat(char * filename, int mode, iNode * current){
+
+	int i;
+	iNode * ret = insert_file(filename,mode,posible_inode);
+	insert_fd(ret->iNode_number);
+	return ret;//TODO:Aca devolver lo que le sirva al FDs
+
+}
+
+
 int do_write(int fd, char * buf, int n){
 	
-	int inodenumber = 2;//buscar en fd el inodo
-	iNode * inode =	fs_get_inode(2);
+	int inode_number = search_for_fd(fd);//buscar en fd el inodo
+	iNode * inode =	fs_get_inode(inode_number);
 	write_inode(inode, buf,n);
 	
 }
 
 int do_read(int fd, char * buf, int n){
-	return 0;
+
+	int inode_number = search_for_fd(fd);//buscar en fd el inodo
+	iNode * inode =	fs_get_inode(inode_number);
+	return read_inode(inode, buf,n);
 }
 
+typedef struct{
+	int fd;
+	int inode;
+}filedescriptor
+
+fileDescriptor * fd_table = (fileDescriptor *)calloc(100,1);
+
+int search_for_fd(int fd){
+	int i;
+	for ( i=0; i<100;i++){
+		if ( fd == fd_table[i].fd ){
+			return fd_table[i].inode;
+		}
+	}
+	return -1;
+}
+
+int insert_fd(int inode_number){
+	int i;
+	for(i=0;i<100;i++){
+		if ( fd_table[i].fd == 0){
+			fd_table[i].fd = i;
+			fd_table[i].inode = inode_number;
+			return i;
+		}
+	}
+	return -1;
+}
+
+void delete_fd(int filedescriptor){
+
+	fd_table[filedescriptor].fd = 0;
+	//TODO:CERRAR ESE INODO;
+	
+}
 
 
 
@@ -909,7 +948,7 @@ void substr(char dest[], char src[], int offset, int len)
 
 
 int creat (const char *filename, int mode){
-	//do_creat(filename,mode);
+	do_creat(filename,mode);
 }
 
 int open (const char *filename, int flags, int mode){
@@ -917,11 +956,11 @@ int open (const char *filename, int flags, int mode){
 }
 
 int read(int fd, char *buf, int n){
-	return 0;
+	do_read(fd,buf,n);
 }
 
 int write(int fd, char *buf, int n){
-	return 0;
+	do_write(fd,buf,n);
 }
 
 int close(int fd){
