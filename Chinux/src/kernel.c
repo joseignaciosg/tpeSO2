@@ -11,7 +11,6 @@
 /***	Project Includes	***/
 #include "../include/kasm.h"
 #include "../include/kernel.h"
-#include "../include/kc.h"
 #include "../include/shell.h"
 #include "../include/utils.h"
 #include "../include/process.h"
@@ -354,6 +353,10 @@ void getTerminalCurPos_in_kernel(int * curpos){
 	(*curpos) = terminals[currentProcessTTY].curpos;
 }
 
+void getCurrentTTY_in_kernel(int * currtty ){
+	(*currtty) = currentTTY;
+}
+
 
 void int_79(size_t call, size_t param){
 	switch(call){
@@ -373,10 +376,13 @@ void int_79(size_t call, size_t param){
 		waitpid_in_kernel(param); /*param == pid*/
 		break;
 	case TERM_SIZE:
-		getTerminalSize_in_kernel(param); /*param == *size*/
+		getTerminalSize_in_kernel((int *)param); /*param == *size*/
 		break;
 	case TERM_CURPOS:
-		getTerminalCurPos_in_kernel(param); /*param == *curpos*/
+		getTerminalCurPos_in_kernel((int *)param); /*param == *curpos*/
+		break;
+	case CURR_TTY:
+		getCurrentTTY_in_kernel((int *)param); /*param == *currtty*/
 		break;
 	}
 }

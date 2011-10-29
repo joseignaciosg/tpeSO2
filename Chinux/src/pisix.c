@@ -11,7 +11,6 @@
 /***	Project Includes	***/
 #include "../include/kasm.h"
 #include "../include/kernel.h"
-#include "../include/kc.h"
 #include "../include/shell.h"
 #include "../include/utils.h"
 #include "../include/process.h"
@@ -66,3 +65,7 @@ void getTerminalCurPos(int * curpos)
 	_int_79_caller(TERM_CURPOS,curpos);
 }
 
+void getCurrentTTY(int currtty)
+{
+	_int_79_caller(CURR_TTY,currtty);
+}
