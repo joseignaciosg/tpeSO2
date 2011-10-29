@@ -53,3 +53,9 @@ void waitpid(int pid)
 {
 	_int_79_caller(WAIT_PID,pid);
 }
+
+void getTerminalSize(int * size)
+{
+	_int_79_caller(TERM_SIZE,size);
+}
+

@@ -346,6 +346,10 @@ void waitpid_in_kernel(int pid)
 	block_process(CurrentPID);
 }
 
+void getTerminalSize_in_kernel(int * size){
+	(*size) = terminals[currentTTY].buffer.size;
+}
+
 
 void int_79(size_t call, size_t param){
 	switch(call){
@@ -364,8 +368,8 @@ void int_79(size_t call, size_t param){
 	case WAIT_PID:
 		waitpid_in_kernel(param); /*param == pid*/
 		break;
-	/*case TERM_SIZE:
-		getTerminalSize_in_kernel(param);*/
+	case TERM_SIZE:
+		getTerminalSize_in_kernel(param); /*param == *size*/
 	}
 }
 

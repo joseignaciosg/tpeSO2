@@ -128,7 +128,7 @@ showLastCommand() {
 			}
 		}
 		if (terminals[currentTTY].buffer.array[0]) {
-			size = terminals[currentTTY].buffer.size;
+			getTerminalSize(&size);
 			for (i = 0; i < size; i++) {
 				deleteCharFromBuff();
 			}
@@ -159,7 +159,7 @@ showPreviousCommand() {
 				deleteCharFromBuff();
 			}
 			if (terminals[currentTTY].buffer.array[0]) {
-				size = terminals[currentTTY].buffer.size;
+				getTerminalSize(&size);
 				for (i = 0; i < size; i++) {
 					deleteCharFromBuff();
 				}
@@ -182,7 +182,8 @@ showPreviousCommand() {
 
 void
 saveCommand() {
-	int buffsize = terminals[currentTTY].buffer.size;
+	int buffsize;
+	getTerminalSize(&buffsize);
 	if (buffcopy[0]) {
 		if (sto_i == STO_MAX - 1)
 			sto_i = 0;
@@ -197,8 +198,9 @@ saveCommand() {
 
 void splitbuffer(void)
 {
-	int i = 0, j = 0, k = 0;
-	while(j < terminals[currentTTY].buffer.size)
+	int i = 0, j = 0, k = 0, size;
+	getTerminalSize(&size);
+	while(j < size)
 	{
 		buffcopyparsed[i][k] = buffcopy[j];
 		k++;
@@ -217,7 +219,9 @@ int
 parseBuffer() {
 	int invalidcom = FALSE;
 	int cleared_screen = FALSE;
-	int isFront = 1, pid, i;
+	int isFront = 1, pid, i,size;
+	getTerminalSize(&size);
+
 
 	scanf("%s", buffcopy);
 
@@ -225,7 +229,7 @@ parseBuffer() {
 
 	if(!usrLoged && usrName)
 	{
-		strcopy(usr.name, buffcopy, terminals[currentTTY].buffer.size);
+		strcopy(usr.name, buffcopy, size);
 		clearBuffcopy();
 		clearTerminalBuffer(currentTTY);
 		return;
@@ -233,7 +237,7 @@ parseBuffer() {
 
 	if(!usrLoged && password)
 	{
-		strcopy(usr.password, buffcopy, terminals[currentTTY].buffer.size);
+		strcopy(usr.password, buffcopy, size);
 		clearBuffcopy();
 		if(strcmp(usr.name, admin.name) && strcmp(usr.password, admin.password))
 			usrLoged = 1;
@@ -246,10 +250,10 @@ parseBuffer() {
 
 	saveCommand();
 
-	if(buffcopy[terminals[currentTTY].buffer.size - 1] == '&' && buffcopy[terminals[currentTTY].buffer.size - 2] == ' ')
+	if(buffcopy[size - 1] == '&' && buffcopy[size - 2] == ' ')
 	{
 		isFront = 0;
-		buffcopy[terminals[currentTTY].buffer.size - 2] = 0;
+		buffcopy[size - 2] = 0;
 	}
 
 	if (strcmp("clear", buffcopy)) {
@@ -368,9 +372,12 @@ shell(int argc, char * argv[]) {
 }
 
 
-int read_command()
+int
+read_command()
 {
-	if(terminals[currentTTY].buffer.size == 0)
+	int size;
+	getTerminalSize(&size);
+	if(size == 0)
 		return -1;
 	return 0;
 }
