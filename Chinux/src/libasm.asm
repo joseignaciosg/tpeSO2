@@ -14,9 +14,11 @@ GLOBAL  _debug
 GLOBAL	_yield
 GLOBAL	_out
 GLOBAL	_in
-GLOBAL	_inw
-GLOBAL	_outw
 GLOBAL	_Halt
+GLOBAL	_outb
+GLOBAL	_outw
+GLOBAL	_inb
+GLOBAL	_inw
 
 EXTERN  int_08
 EXTERN  int_09
@@ -95,6 +97,43 @@ _export:
 		out dx,al
 		mov esp, ebp
 		pop ebp
+		ret
+
+_inb:
+		push	ebp
+		mov		ebp, esp		; Stack frame
+		mov		edx, [ebp+8]    ; Puerto
+		mov		eax, 0          ; Limpio eax
+		in byte		al, dx
+		pop		ebp
+		ret
+
+_outb:
+		push	ebp
+		mov		ebp, esp		; Stack frame
+		mov		edx, [ebp+8]   	; Puerto
+		mov		eax, [ebp+12]  	; Lo que se va a mandar
+		out 	dx, al
+		pop		ebp
+		ret
+
+
+_inw:
+		push	ebp
+		mov		ebp, esp		; Stack frame
+		mov		edx, [ebp+8]    ; Puerto
+		mov		eax, 0          ; Limpio eax
+		in		ax, dx
+		pop		ebp
+		ret
+
+_outw:
+		push	ebp
+		mov		ebp, esp		; Stack frame
+		mov		edx, [ebp+8]   	; Puerto
+		mov		eax, [ebp+12]  	; Lo que se va a mandar
+		out		dx, ax
+		pop		ebp
 		ret
 
 _getCPUSpeed:
@@ -255,23 +294,6 @@ _out:
 		pop		ebp
 		ret
 
-_inw:
-		push	ebp
-		mov		ebp, esp		; Stack frame
-		mov		edx, [ebp+8]    ; Puerto
-		mov		eax, 0          ; Limpio eax
-		in		ax, dx
-		pop		ebp
-		ret
-
-_outw:
-		push	ebp
-		mov		ebp, esp		; Stack frame
-		mov		edx, [ebp+8]   	; Puerto
-		mov		eax, [ebp+12]  	; Lo que se va a mandar
-		out		dx, ax
-		pop		ebp
-		ret
 
 
 ; Debug para el BOCHS, detiene la ejecución. Para continuar colocar en el BOCHSDBG: set $eax=0

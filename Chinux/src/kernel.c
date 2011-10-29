@@ -16,6 +16,7 @@
 #include "../include/utils.h"
 #include "../include/process.h"
 
+
 DESCR_INT idt[0x90]; /* IDT 144 positions*/
 IDTR idtr;			 /* IDTR */
 
@@ -38,6 +39,7 @@ extern int last100[100];
 
 void set_Process_ready(PROCESS * proc);
 void * malloc (int size);
+void * calloc (int size, int quant);
 
 void
 initializeIDT()
@@ -99,6 +101,7 @@ kmain()
 	strcopy(admin.name, "chinux", str_len("chinux"));
 	strcopy(admin.password, "chinux", str_len("chinux"));
 	_Sti();
+
 	while(TRUE)
 	;
 	return 1;
