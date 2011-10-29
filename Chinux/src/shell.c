@@ -202,8 +202,7 @@ parseBuffer() {
 	{
 		strcopy(usr.name, buffcopy, terminals[currentTTY].buffer.size);
 		clearBuffcopy();
-		terminals[currentTTY].buffer.first_char = terminals[currentTTY].buffer.actual_char + 1 % BUFFER_SIZE;
-		terminals[currentTTY].buffer.size = 0;
+		clearTerminalBuffer(currentTTY);
 		return;
 	}
 
@@ -215,8 +214,7 @@ parseBuffer() {
 			usrLoged = 1;
 		else
 			printf("\nUser name or password incorrect. Please try again.");
-		terminals[currentTTY].buffer.first_char = terminals[currentTTY].buffer.actual_char + 1 % BUFFER_SIZE;
-		terminals[currentTTY].buffer.size = 0;		
+		clearTerminalBuffer(currentTTY);
 		return;
 	}
 
@@ -262,8 +260,7 @@ parseBuffer() {
 		clearBuffcopy();
 		for(i = 0; i < 4; i++)
 		{
-			terminals[i].buffer.first_char = terminals[i].buffer.actual_char + 1 % BUFFER_SIZE;
-			terminals[i].buffer.size = 0;
+			clearTerminalBuffer(i);
 			currentProcessTTY = i;
 			k_clear_screen();
 			cleared_screen = TRUE;
@@ -445,8 +442,8 @@ shell(int argc, char * argv[]) {
 			if(pid)
 				waitpid(pid);
 			printShellLine();
-			terminals[currentTTY].buffer.first_char = terminals[currentTTY].buffer.actual_char + 1 % BUFFER_SIZE;
-			terminals[currentTTY].buffer.size = 0;
+			/*TODO testing*/
+			clearTerminalBuffer(currentTTY);
 		}
 		moveCursor();
 		_Sti();

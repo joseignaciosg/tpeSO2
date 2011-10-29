@@ -30,6 +30,7 @@
 #define KILL 7
 #define BLOCK 8
 #define CREATE 9
+#define CLEAR_TERM 10
 
 #define TRUE 1
 #define FALSE 0
