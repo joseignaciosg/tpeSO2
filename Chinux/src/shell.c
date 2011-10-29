@@ -192,6 +192,24 @@ saveCommand() {
 	return;
 }
 
+void splitbuffer(void)
+{
+	int i = 0, j = 0, k = 0;
+	while(j < terminals[currentTTY].buffer.size)
+	{
+		buffcopyparsed[i][k] = buffcopy[j];
+		k++;
+		if(buffcopy[j] == ' ' && i < 9)
+		{
+			buffcopyparsed[i][k] = 0;
+			i++; k = 0;
+		}
+		j++;
+	}
+	return ;
+}
+
+
 int
 parseBuffer() {
 	int invalidcom = FALSE;
@@ -200,13 +218,13 @@ parseBuffer() {
 
 	scanf("%s", buffcopy);
 
+	splitbuffer();
 
 	if(!usrLoged && usrName)
 	{
 		strcopy(usr.name, buffcopy, terminals[currentTTY].buffer.size);
 		clearBuffcopy();
-		terminals[currentTTY].buffer.first_char = terminals[currentTTY].buffer.actual_char + 1 % BUFFER_SIZE;
-		terminals[currentTTY].buffer.size = 0;
+		clearTerminalBuffer(currentTTY);
 		return;
 	}
 
@@ -218,9 +236,8 @@ parseBuffer() {
 			usrLoged = 1;
 		else
 			printf("\nUser name or password incorrect. Please try again.");
+		clearTerminalBuffer(currentTTY);
 
-		terminals[currentTTY].buffer.first_char = terminals[currentTTY].buffer.actual_char + 1 % BUFFER_SIZE;
-		terminals[currentTTY].buffer.size = 0;		
 		return;
 	}
 
@@ -239,12 +256,14 @@ parseBuffer() {
 	} else if (strcmp("printftest", buffcopy)) {
 		putc('\n');
 		printfTest();
+		isFront = 0;
 	} else if (strcmp("getCPUSpeed", buffcopy)) {
 		putc('\n');
 		printf("CPU Speed: %ld  MHz", getCPUSpeed());
 	} else if (strcmp("help", buffcopy)) {
 		putc('\n');
 		showHelp();
+		isFront = 0;
 	}else if(strcmp("prueba", buffcopy)){
 		//putc('\n');
 		pid = CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
@@ -266,22 +285,24 @@ parseBuffer() {
 		clearBuffcopy();
 		for(i = 0; i < 4; i++)
 		{
-			terminals[i].buffer.first_char = terminals[i].buffer.actual_char + 1 % BUFFER_SIZE;
-			terminals[i].buffer.size = 0;
+			clearTerminalBuffer(i);
 			currentProcessTTY = i;
 			k_clear_screen();
 			cleared_screen = TRUE;
 		}
 		currentProcessTTY = aux;
-		logoutPID = pid = CreateProcessAt("logout", (int(*)(int, char**))logout, currentProcessTTY, 0, (char**)0, 0x400, 4, isFront);	/*puedo borrar pid = ??*/
+		logoutPID = pid = CreateProcessAt("logout", (int(*)(int, char**))logout, currentProcessTTY, 0, (char**)0, 0x400, 4, isFront);
 	}else if(strcmp("top", buffcopy)){
 		pid = CreateProcessAt("Top", (int(*)(int, char**))top, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
-	}else if(buffcopy[0] == 'k' && buffcopy[1] == 'i' && buffcopy[2] == 'l' && buffcopy[3] == 'l' && buffcopy[4] == ' '){
+	}else if(strcmp("kill ", buffcopyparsed[0])){
 		int pid;
-		scanfi(&pid, &buffcopy[5]);
+		scanfi(&pid, &buffcopyparsed[1][0]);
 		kill(pid);
 		isFront = 0;
-	}else if(strcmp("createusr", buffcopy)){
+	}else if(strcmp("createusr ", buffcopyparsed[0])){
+		strcopy(usr.name, buffcopyparsed[1], str_len(buffcopyparsed[1]) );
+		strcopy(usr.password, buffcopyparsed[2], str_len(buffcopyparsed[2]) );
+		printf("name:%s password:%s\n", usr.name, usr.password);
 		//pid = CreateProcessAt("Top", (int(*)(int, char**))top, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else {
 
@@ -450,8 +471,8 @@ shell(int argc, char * argv[]) {
 			if(pid)
 				waitpid(pid);
 			printShellLine();
-			terminals[currentTTY].buffer.first_char = terminals[currentTTY].buffer.actual_char + 1 % BUFFER_SIZE;
-			terminals[currentTTY].buffer.size = 0;
+			/*TODO testing*/
+			clearTerminalBuffer(currentTTY);
 		}
 		moveCursor();
 		_Sti();

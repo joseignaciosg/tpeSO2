@@ -69,7 +69,11 @@ main(){
 	print_directories(current);
 	iNode * ret = do_creat("nico.txt",999,current);
 	char * buffer = "holahola";
+<<<<<<< HEAD
+	write_inode(ret,buffer,strlen(buffer));
+=======
 	write_inode(ret,buffer,str_len(buffer));
+>>>>>>> 1f272b21b155654d8528b28af414cd3c2492ff70
 	//makeDir("/Hola/asd");
 	//print_directories(current);
 	
@@ -474,6 +478,7 @@ void insert_directory_entry(iNode * newDirectory, iNode * current, char * name){
 
 
 iNode * insert_file( char * name, int mode, iNode * current ){
+
 	//TODO: CRear el inodo de directorio con todas sus entradas.
 	iNode * newFile = (iNode *)malloc(sizeof(iNode));
 	newFile =  fs_creat_inode(FILE,mode,0,current);
@@ -797,6 +802,15 @@ void recursive_remove( iNode * current ){
 	}
 }
 
+iNode * do_creat(char * filename, int mode, iNode * current){
+
+
+	int i;
+	iNode * ret = insert_file(filename,mode,current);
+	return ret;//TODO:Aca devolver lo que le sirva al FDs
+		
+}
+
 
 void write_inode(iNode * inode, char * buf, int n){	
 		
@@ -825,6 +839,7 @@ void write_inode(iNode * inode, char * buf, int n){
 		inode->data.direct_blocks[0] = freeblock;
 		inode->data.direct_blocks[1] = newrequeried_blocks;
 		inode->size = file_size + n;
+
 		//LIBERO LO VIEJO
 		free_used_blocks(init_block,quantity, BITMAP);
 		//INSERTO EL INODE
@@ -852,6 +867,7 @@ int read_inode(iNode * inode, char * buf, int n){
 	}else{
 		read_disk(0,init_block,receive_buffer,quantity*512,0);
 		memcpy(buf,receive_buffer,n);
+
 	}
 
 	return n;//CAMBIAR	
@@ -950,6 +966,7 @@ void substr(char dest[], char src[], int offset, int len)
 int creat (const char *filename, int mode){
 	do_creat(filename,mode);
 }
+
 
 int open (const char *filename, int flags, int mode){
 	return 0;

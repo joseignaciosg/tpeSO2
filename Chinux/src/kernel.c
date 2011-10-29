@@ -107,29 +107,6 @@ kmain()
 	return 1;
 }
 
-/*int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, char** argv, int stacklength, int priority, int isFront)
-{
-	PROCESS * proc;
-	void * stack = malloc(stacklength);
-	proc = malloc(sizeof(PROCESS));
-	proc->name = (char*)malloc(15);
-	proc->pid = nextPID++;
-	proc->foreground = isFront;
-	proc->priority = priority;
-	memcpy(proc->name, name,str_len(name) + 1);
-	proc->state = READY;
-	proc->tty = tty;
-	proc->stacksize = stacklength;
-	proc->stackstart = (int)stack;
-	proc->ESP = LoadStackFrame(process,argc,argv,(int)(stack + stacklength - 1), end_process);
-	proc->parent = CurrentPID;
-	proc->waitingPid = 0;
-	proc->sleep = 0;
-	proc->acum = priority + 1;
-	set_Process_ready(proc);	
-	return proc->pid;
-	
-}*/
 
 int CreateProcessAt_in_kernel(createProcessParam * param)
 {
@@ -351,6 +328,12 @@ void kill_in_kernel(int pid)
 	return ;
 }
 
+void clearTerminalBuffer_in_kernel( int ttyid){
+	terminals[ttyid].buffer.first_char = terminals[ttyid].buffer.actual_char + 1 % BUFFER_SIZE;
+	terminals[ttyid].buffer.size = 0;
+}
+
+
 void int_79(size_t call, size_t param){
 	switch(call){
 	case CREATE:/* create function */
@@ -362,7 +345,9 @@ void int_79(size_t call, size_t param){
 	case BLOCK:/* block function */
 		block_process_in_kernel(param);/*param == pid*/
 		break;
-
+	case CLEAR_TERM:
+		clearTerminalBuffer_in_kernel(param); /*param == ttyid*/
+		break;
 	}
 }
 
@@ -388,3 +373,4 @@ void sleep(int secs)
 	proc->sleep = 18 * secs;
 	block_process(CurrentPID);
 }
+

@@ -3,7 +3,6 @@
  *  utils.h
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
- *		Reznik, Luciana
  *		ITBA 2011
  *
  ***********************************/
