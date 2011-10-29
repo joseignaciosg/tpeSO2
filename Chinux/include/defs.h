@@ -31,6 +31,8 @@
 #define BLOCK 8
 #define CREATE 9
 #define CLEAR_TERM 10
+#define WAIT_PID 11
+#define TERM_SIZE 12
 
 #define TRUE 1
 #define FALSE 0

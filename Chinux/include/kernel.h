@@ -3,7 +3,6 @@
  *  Kernel.h
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
- *		Reznik, Luciana
  *		ITBA 2011
  *
  ***********************************/
@@ -62,5 +61,16 @@ void reboot();
 
 
 void startTerminal(int pos);
+
+void set_Process_ready(PROCESS * proc);
+
+void * malloc (int size);
+
+void * calloc (int size, int quant);
+
+void logUser(void);
+
+void logout(int argc, char * argv[]);
+
 
 #endif

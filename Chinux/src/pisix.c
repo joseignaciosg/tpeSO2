@@ -48,3 +48,8 @@ int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, c
 void clearTerminalBuffer( int ttyid){
 	_int_79_caller(CLEAR_TERM,ttyid);
 }
+
+void waitpid(int pid)
+{
+	_int_79_caller(WAIT_PID,pid);
+}

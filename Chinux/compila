@@ -5,6 +5,7 @@ nasm -f aout ../src/kstart.asm -o kstart.o
 nasm -f aout ../src/loader.asm -o kstart.o
 gcc -c ../src/kernel.c -o kernel.o -fno-builtin
 gcc -c ../src/pisix.c -o pisix.o -fno-builtin
+gcc -c ../src/apps.c -o apps.o -fno-builtin
 gcc -c ../src/tests.c -fno-stack-protector  -o tests.o -fno-builtin
 gcc -c ../src/shell.c -fno-stack-protector -o shell.o -fno-builtin
 gcc -c ../src/video.c -fno-stack-protector -o video.o -fno-builtin
@@ -15,4 +16,4 @@ gcc -c ../src/utils.c -fno-stack-protector -o utils.o -fno-builtin
 gcc -c ../src/scheduler.c -o scheduler.o -fno-builtin
 gcc -c ../src/malloc.c -fno-stack-protector -o malloc.o -fno-builtin
 gcc -c ../driver/atadisk.c -fno-stack-protector -o atadisk.o -fno-builtin
-ld -T ../src/link.ld -o kernel.bin kstart.o kernel.o pisix.o utils.o stdio.o video.o timertick.o keyboard.o tests.o libasm.o shell.o scheduler.o malloc.o atadisk.o
+ld -T ../src/link.ld -o kernel.bin kstart.o apps.o kernel.o pisix.o utils.o stdio.o video.o timertick.o keyboard.o tests.o libasm.o shell.o scheduler.o malloc.o atadisk.o

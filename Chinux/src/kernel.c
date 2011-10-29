@@ -36,10 +36,14 @@ extern int timeslot;
 extern int logoutPID;
 extern int actualKilled;
 extern int last100[100];
+extern int usrLoged;
+extern int usrName;
+extern int password;
 
-void set_Process_ready(PROCESS * proc);
-void * malloc (int size);
-void * calloc (int size, int quant);
+
+
+
+
 
 void
 initializeIDT()
@@ -105,6 +109,20 @@ kmain()
 	while(TRUE)
 	;
 	return 1;
+}
+
+PROCESS * GetProcessByPID(int pid)
+{
+	processNode * aux;
+	if(pid == 0 || ready == NULL)
+		return &idle;
+
+	aux = ((processNode*)ready);
+	while(aux != NULL && aux->process->pid != pid)
+		aux = ((processNode*)aux->next);
+	if(aux == NULL)
+		return &idle;
+	return aux->process;
 }
 
 
@@ -213,19 +231,6 @@ void awake_process(int pid)
 }
 
 
-PROCESS * GetProcessByPID (int pid)
-{
-	processNode * aux;
-	if(pid == 0 || ready == NULL)
-		return &idle;
-
-	aux = ((processNode*)ready);
-	while(aux != NULL && aux->process->pid != pid)
-		aux = ((processNode*)aux->next);
-	if(aux == NULL)
-		return &idle;
-	return aux->process;
-}
 
 int Idle(int argc, char* argv[])
 {
@@ -333,6 +338,14 @@ void clearTerminalBuffer_in_kernel( int ttyid){
 	terminals[ttyid].buffer.size = 0;
 }
 
+void waitpid_in_kernel(int pid)
+{
+	PROCESS* proc;
+	proc = GetProcessByPID(CurrentPID);
+	proc->waitingPid = pid;
+	block_process(CurrentPID);
+}
+
 
 void int_79(size_t call, size_t param){
 	switch(call){
@@ -348,6 +361,11 @@ void int_79(size_t call, size_t param){
 	case CLEAR_TERM:
 		clearTerminalBuffer_in_kernel(param); /*param == ttyid*/
 		break;
+	case WAIT_PID:
+		waitpid_in_kernel(param); /*param == pid*/
+		break;
+	/*case TERM_SIZE:
+		getTerminalSize_in_kernel(param);*/
 	}
 }
 
@@ -372,5 +390,44 @@ void sleep(int secs)
 	proc = GetProcessByPID(CurrentPID);
 	proc->sleep = 18 * secs;
 	block_process(CurrentPID);
+}
+
+void logUser(void)
+{
+	int i;
+	while(!usrLoged)
+	{
+		printf("username: ");
+		moveCursor();
+		usrName = 1;
+		block_process(CurrentPID);
+		parseBuffer();
+		usrName = 0;
+		printf("\n");
+		printf("password: ");
+		moveCursor();
+		password = 1;
+		block_process(CurrentPID);
+		parseBuffer();
+		password = 0;
+		printf("\n");
+	}
+	terminals[0].PID = CreateProcessAt("Shell0", (int(*)(int, char**))shell, 0, 0, (char**)0, 0x400, 2, 1);
+	terminals[1].PID = CreateProcessAt("Shell1", (int(*)(int, char**))shell, 1, 0, (char**)0, 0x400, 2, 1);
+	terminals[2].PID = CreateProcessAt("Shell2", (int(*)(int, char**))shell, 2, 0, (char**)0, 0x400, 2, 1);
+	terminals[3].PID = CreateProcessAt("Shell3", (int(*)(int, char**))shell, 3, 0, (char**)0, 0x400, 2, 1);
+	_Sti();
+	return;
+}
+
+
+void logout(int argc, char * argv[])
+{
+	int i;
+	for(i = 0; i < 4; i++)
+		kill(terminals[i].PID);
+	usrLoged = 0;
+	logPID = CreateProcessAt("logUsr", (int(*)(int, char**))logUser, currentProcessTTY, 0, (char**)0, 0x400, 4, 1);
+	_Sti();
 }
 

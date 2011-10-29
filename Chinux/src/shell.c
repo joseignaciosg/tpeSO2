@@ -19,6 +19,8 @@
 #include "../include/process.h"
 #include "../include/fs.h"
 #include "../include/atadisk.h"
+#include "../include/apps.h"
+/*#include "../include/kernel.h"*/
 
 /***	Module Defines	***/
 #define STO_MAX  100
@@ -42,8 +44,9 @@ extern int logPID;
 extern TTY terminals[4];
 extern user admin;
 
-static int read_command();
 void logout(int argc, char * argv[]);
+
+
 
 
 char
@@ -333,123 +336,7 @@ parseBuffer() {
 	return isFront;
 }
 
-void logout(int argc, char * argv[])
-{
-	int i;
-	for(i = 0; i < 4; i++)
-		kill(terminals[i].PID);
-	usrLoged = 0;
-	logPID = CreateProcessAt("logUsr", (int(*)(int, char**))logUser, currentProcessTTY, 0, (char**)0, 0x400, 4, 1);
-	_Sti();
-}
 
-
-void prioridad(int argc, char * argv[])
-{
-	_Sti();
-	while(TRUE)
-	;
-}
-
-void prueba2(int argc, char * argv[])
-{
-	int i = 50000000;
-	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, 1);
-	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, 1);
-	CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, 1);
-	_Sti();
-	printf("prueba2\n");
-	while(i--)
-		;
-
-	return;
-}
-
-void prueba(int argc, char * argv[])
-{
-	int i = 10000;
-	_Sti();
-	printf("prueba\n");
-	while(TRUE)
-		;//printf("prueba\n");
-	return;
-}
-
-
-void top(int argc, char * argv[])
-{
-	int i, j, length, pos;
-	PROCESS * proc;
-	_Sti();
-	while(TRUE)
-	{
-		for(i = 0; i < 100; i++)
-		{
-			top100[i].pid = -1;
-			top100[i].cpu = 0;
-		}
-		pos = 0;
-		for(i = 0; i < 100; i++)
-		{
-			if(last100[i] == -1)
-			{
-				if(top100[pos].pid == -1)
-					pos = 0;
-				top100[pos].cpu++;
-				pos++;
-			}
-			else{
-				j = 0;
-				while(top100[j].pid != last100[i] && top100[j].pid != -1)
-					j++;
-				top100[j].pid = last100[i];
-				top100[j].cpu++;
-			}
-		}
-		printf("Process Name        cpu       PID\n");
-		for(j = 0; top100[j].pid != -1; j++)
-		{
-			length = 20;
-			proc = GetProcessByPID(top100[j].pid);
-			printf("%s", proc->name);
-			length -= str_len(proc->name);
-			while(length--)
-				putc(' ');
-			printf("%d         %d\n", top100[j].cpu, top100[j].pid);
-		}
-		sleep(3);
-		k_clear_screen();
-	}
-}
-
-void logUser(void)
-{
-	int i;
-	while(!usrLoged)
-	{
-		printf("username: ");
-		moveCursor();
-		usrName = 1;
-		block_process(CurrentPID);
-		parseBuffer();
-		usrName = 0;
-		printf("\n");
-		printf("password: ");
-		moveCursor();
-		password = 1;
-		block_process(CurrentPID);
-		parseBuffer();
-		password = 0;
-		printf("\n");
-	}
-	terminals[0].PID = CreateProcessAt("Shell0", (int(*)(int, char**))shell, 0, 0, (char**)0, 0x400, 2, 1);
-	terminals[1].PID = CreateProcessAt("Shell1", (int(*)(int, char**))shell, 1, 0, (char**)0, 0x400, 2, 1);
-	terminals[2].PID = CreateProcessAt("Shell2", (int(*)(int, char**))shell, 2, 0, (char**)0, 0x400, 2, 1);
-	terminals[3].PID = CreateProcessAt("Shell3", (int(*)(int, char**))shell, 3, 0, (char**)0, 0x400, 2, 1);
-	_Sti();
-	//printf("loggin in...\n");
-	return;
-}
 
 void
 shell(int argc, char * argv[]) {
@@ -480,13 +367,6 @@ shell(int argc, char * argv[]) {
 	return;
 }
 
-void waitpid(int pid)
-{
-	PROCESS* proc;
-	proc = GetProcessByPID(CurrentPID);
-	proc->waitingPid = pid;
-	block_process(CurrentPID);
-}
 
 int read_command()
 {
