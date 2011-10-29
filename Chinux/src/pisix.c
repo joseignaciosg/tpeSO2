@@ -15,10 +15,12 @@
 #include "../include/shell.h"
 #include "../include/utils.h"
 #include "../include/process.h"
+#include "../include/defs.h"
 
-/*
-static int nextPID = 1;
-extern int CurrentPID;
+/*createProcessParam  myparam;*/
+
+extern int nextPID;
+/*extern int CurrentPID;
 
 
 int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, char** argv, int stacklength, int priority, int isFront)
@@ -51,4 +53,27 @@ void block_process(int pid){
 
 void kill(int pid){
 	_int_79_caller(KILL, pid);
+}
+
+int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, char** argv, int stacklength, int priority, int isFront){
+	createProcessParam * param = (createProcessParam *)malloc(sizeof(createProcessParam));
+	/*param->name = name;*/
+	strcopy( param->name, name, str_len(name) );
+	param->process = process;
+	param->tty = tty;
+	param->argc = argc;
+	param->argv = argv;
+	param->stacklength = stacklength;
+	param->priority = priority;
+	param->isFront = isFront;
+	/*strcopy( myparam.name, name, 11);
+	myparam.process = process;
+	myparam.tty = tty;
+	myparam.argc = argc;
+	myparam.argv = argv;
+	myparam.stacklength = stacklength;
+	myparam.priority = priority;
+	myparam.isFront = isFront;*/
+	_int_79_caller(CREATE,param);
+	return nextPID++;
 }
