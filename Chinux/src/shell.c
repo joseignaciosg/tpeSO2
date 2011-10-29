@@ -311,6 +311,14 @@ parseBuffer() {
 		strcopy(usr.password, buffcopyparsed[2], str_len(buffcopyparsed[2]) );
 		printf("name:%s password:%s\n", usr.name, usr.password);
 		//pid = CreateProcessAt("Top", (int(*)(int, char**))top, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
+	}else if(strcmp("mkdir ", buffcopyparsed[0])){
+		makeDir(buffcopyparsed[1]);
+	}else if(strcmp("ls ", buffcopyparsed[0])){
+		ls(buffcopyparsed[1]);
+	}else if(strcmp("rm ", buffcopyparsed[0])){
+		rmDir(buffcopyparsed[1]);
+	}else if(strcmp("cd ", buffcopyparsed[0])){
+		cd(buffcopyparsed[1]);/*rmDir*/
 	}else {
 
 		invalidcom = TRUE;

@@ -13,6 +13,7 @@ gcc -c ../src/keyboard.c -fno-stack-protector -o keyboard.o -fno-builtin
 gcc -c ../src/timertick.c -fno-stack-protector -o timertick.o -fno-builtin
 gcc -c ../src/stdio.c -fno-stack-protector -o stdio.o -fno-builtin
 gcc -c ../src/utils.c -fno-stack-protector -o utils.o -fno-builtin
+gcc -c ../fileSystem/newFs.c -fno-stack-protector -o fs.o -fno-builtin
 gcc -c ../src/scheduler.c -o scheduler.o -fno-builtin
 gcc -c ../src/malloc.c -fno-stack-protector -o malloc.o -fno-builtin
 gcc -c ../driver/atadisk.c -fno-stack-protector -o atadisk.o -fno-builtin
