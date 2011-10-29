@@ -98,6 +98,7 @@ kmain()
 	initializeIDT();
 	unmaskPICS();
 	SetupScheduler();
+	
 	ready = NULL;
 	for(i = 0; i < 4; i++)
 		startTerminal(i);
