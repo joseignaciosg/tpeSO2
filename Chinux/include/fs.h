@@ -128,6 +128,12 @@ typedef struct{
 	char * path;
 }fileDescriptor;
 
+
+typedef struct{
+	int fd;
+	int inode;
+}filedescriptor;
+
 typedef int word_t;
 
 enum { WORD_SIZE = sizeof(word_t) * 8 };
@@ -167,11 +173,17 @@ void ls(char *);
 
 /* VFS Functions Declartions */
 
-int creat (const char *filename, int mode);
+int creat (char *filename, int mode);
 int open (const char *filename, int flags, int mode);
 int read(int fd, char *buf, int n);
 int write(int fd, char *buf, int n);
 int close(int fd);
+
+
+int search_for_fd(int fd);
+int insert_fd(int inode);
+void delete_fd(int filedescriptor);
+
 
 void insert_file_entry(iNode * newFile, iNode * current, char * name);
 iNode * insert_file( char * name, int mode, iNode * current );
@@ -191,7 +203,7 @@ void substr(char dest[], char src[], int offset, int len);
 
 /* READ AND WRITE */
 
-iNode * do_creat(char * filename, int mode, iNode * current);
+iNode * do_creat(char * filename, int mode);
 int do_write(int fd, char * buf, int n);
 int do_read(int fd, char * buf, int n);
 int read_inode(iNode * inode, char * buf, int n);
@@ -202,3 +214,4 @@ BM * bitmap;
 IM * inodemap;
 masterBlock * superblock;
 iNode * current;
+filedescriptor * fd_table;

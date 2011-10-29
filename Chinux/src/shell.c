@@ -20,6 +20,8 @@
 #include "../include/fs.h"
 #include "../include/atadisk.h"
 #include "../include/apps.h"
+#include "../include/kernel.h"
+
 /*#include "../include/kernel.h"*/
 
 /***	Module Defines	***/
@@ -220,8 +222,8 @@ parseBuffer() {
 	int cleared_screen = FALSE;
 	int isFront = 1, pid, i,size,curpos;
 	getTerminalSize(&size);
-
-
+	
+	fd_table = (filedescriptor *)calloc(100,1);
 	scanf("%s", buffcopy);
 
 	splitbuffer();
