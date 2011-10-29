@@ -14,5 +14,6 @@ gcc -c ../src/stdio.c -fno-stack-protector -o stdio.o -fno-builtin
 gcc -c ../src/utils.c -fno-stack-protector -o utils.o -fno-builtin
 gcc -c ../src/scheduler.c -o scheduler.o -fno-builtin
 gcc -c ../src/malloc.c -fno-stack-protector -o malloc.o -fno-builtin
+gcc -c ../fileSystem/newFs.c -fno-stack-protector -o newFs.o -fno-builtin
 gcc -c ../driver/atadisk.c -fno-stack-protector -o atadisk.o -fno-builtin
-ld -T ../src/link.ld -o kernel.bin kstart.o kernel.o pisix.o utils.o stdio.o video.o timertick.o keyboard.o tests.o libasm.o shell.o scheduler.o malloc.o atadisk.o
+ld -T ../src/link.ld -o kernel.bin kstart.o kernel.o pisix.o utils.o stdio.o video.o timertick.o keyboard.o tests.o libasm.o shell.o scheduler.o malloc.o atadisk.o newFs.o
