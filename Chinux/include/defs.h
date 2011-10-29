@@ -24,6 +24,12 @@
 #define READ  5
 #define ERASE 6
 
+/*
+ * Calls (for int_79 function)
+ */
+#define KILL 7
+#define BLOCK 8
+
 #define TRUE 1
 #define FALSE 0
 
