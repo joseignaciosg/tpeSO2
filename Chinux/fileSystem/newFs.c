@@ -1,4 +1,5 @@
 #include "../include/fs.h"
+#include "../include/kernel.h"
 
 int write_disk(int ata, int sector, void * msg, int count, int offset){
 	return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
@@ -721,14 +722,14 @@ void recursive_remove( iNode * current ){
 	}
 }
 
-iNode * do_creat(char * filename, int mode, iNode * current){
+/*iNode * do_creat(char * filename, int mode, iNode * current){
 
 
 	int i;
 	iNode * ret = insert_file(filename,mode,current);
 	return ret;//TODO:Aca devolver lo que le sirva al FDs
 		
-}
+}*/
 
 
 void write_inode(iNode * inode, char * buf, int n){	
@@ -793,10 +794,10 @@ int read_inode(iNode * inode, char * buf, int n){
 
 }
 
-iNode * do_creat(char * filename, int mode, iNode * current){
+iNode * do_creat(char * filename, int mode){
 
 	int i;
-	iNode * ret = insert_file(filename,mode,posible_inode);
+	iNode * ret = insert_file(filename,mode,current);
 	insert_fd(ret->iNode_number);
 	return ret;//TODO:Aca devolver lo que le sirva al FDs
 
@@ -818,12 +819,6 @@ int do_read(int fd, char * buf, int n){
 	return read_inode(inode, buf,n);
 }
 
-typedef struct{
-	int fd;
-	int inode;
-}filedescriptor
-
-fileDescriptor * fd_table = (fileDescriptor *)calloc(100,1);
 
 int search_for_fd(int fd){
 	int i;
@@ -848,10 +843,8 @@ int insert_fd(int inode_number){
 }
 
 void delete_fd(int filedescriptor){
-
 	fd_table[filedescriptor].fd = 0;
 	//TODO:CERRAR ESE INODO;
-	
 }
 
 
@@ -882,7 +875,7 @@ void substr(char dest[], char src[], int offset, int len)
 
 
 
-int creat (const char *filename, int mode){
+int creat (char *filename, int mode){
 	do_creat(filename,mode);
 }
 

@@ -16,3 +16,13 @@ void * malloc (int size)
 	nextfree = nextfree + size;
 	return temp;
 }
+
+void * calloc (int size, int quant)
+{	
+	int i;
+	char * temp = malloc(size*quant);
+	for(i=0;i<(size*quant);i++){
+		temp[i] = '\0';	
+	}
+	return (void*)temp;
+}
