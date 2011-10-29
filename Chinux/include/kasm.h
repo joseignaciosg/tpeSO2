@@ -24,5 +24,7 @@ void		_int_09_hand();      /* Keyboard Interrupt */
 
 void		_int_80_hand();      /* Basic IO Interrupt */
 
+void		_int_79_hand();      /*  Interrupt for Kill and Block */
+
 void		_debug (void);
 

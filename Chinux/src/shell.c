@@ -17,6 +17,8 @@
 #include "../include/video.h"
 #include "../include/kc.h"
 #include "../include/process.h"
+#include "../include/fs.h"
+#include "../include/atadisk.h"
 
 /***	Module Defines	***/
 #define STO_MAX  100
@@ -235,6 +237,7 @@ parseBuffer() {
 			usrLoged = 1;
 		else
 			printf("\nUser name or password incorrect. Please try again.");
+
 		terminals[currentTTY].buffer.first_char = terminals[currentTTY].buffer.actual_char + 1 % BUFFER_SIZE;
 		terminals[currentTTY].buffer.size = 0;		
 		return;
@@ -305,6 +308,7 @@ parseBuffer() {
 		printf("name:%s password:%s\n", usr.name, usr.password);
 		//pid = CreateProcessAt("Top", (int(*)(int, char**))top, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else {
+
 		invalidcom = TRUE;
 		isFront = 0;
 	}

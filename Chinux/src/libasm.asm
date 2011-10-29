@@ -3,6 +3,9 @@ GLOBAL  _int_08_hand
 GLOBAL  _int_09_hand
 GLOBAL  _int_80_hand
 GLOBAL  _int_80_caller
+GLOBAL  _int_79_hand
+GLOBAL  _int_79_caller
+
 GLOBAL  _inport
 GLOBAL  _export
 GLOBAL  _getCPUSpeed
@@ -11,13 +14,17 @@ GLOBAL  _debug
 GLOBAL	_yield
 GLOBAL	_out
 GLOBAL	_in
-GLOBAL	_inw
-GLOBAL	_outw
 GLOBAL	_Halt
+GLOBAL	_outb
+GLOBAL	_outw
+GLOBAL	_inb
+GLOBAL	_inw
 
 EXTERN  int_08
 EXTERN  int_09
 EXTERN  int_80
+EXTERN  int_79
+
 
 
 EXTERN backuper
@@ -90,6 +97,43 @@ _export:
 		out dx,al
 		mov esp, ebp
 		pop ebp
+		ret
+
+_inb:
+		push	ebp
+		mov		ebp, esp		; Stack frame
+		mov		edx, [ebp+8]    ; Puerto
+		mov		eax, 0          ; Limpio eax
+		in byte		al, dx
+		pop		ebp
+		ret
+
+_outb:
+		push	ebp
+		mov		ebp, esp		; Stack frame
+		mov		edx, [ebp+8]   	; Puerto
+		mov		eax, [ebp+12]  	; Lo que se va a mandar
+		out 	dx, al
+		pop		ebp
+		ret
+
+
+_inw:
+		push	ebp
+		mov		ebp, esp		; Stack frame
+		mov		edx, [ebp+8]    ; Puerto
+		mov		eax, 0          ; Limpio eax
+		in		ax, dx
+		pop		ebp
+		ret
+
+_outw:
+		push	ebp
+		mov		ebp, esp		; Stack frame
+		mov		edx, [ebp+8]   	; Puerto
+		mov		eax, [ebp+12]  	; Lo que se va a mandar
+		out		dx, ax
+		pop		ebp
 		ret
 
 _getCPUSpeed:
@@ -192,6 +236,42 @@ _int_80_hand:      ;Handler de INT 80
       pop    ds
       iret
 
+
+_int_79_caller:
+	  push	ebp
+   	  mov	ebp,esp
+   	  pusha
+	  mov   eax, [ebp+8]  ; call
+	  mov   ebx, [ebp+12] ; pid
+
+	  int   79h
+
+	  popa
+	  mov	esp,ebp
+	  pop	ebp
+	  ret
+
+
+_int_79_hand:      ;Handler de INT 79
+   	  push    ds
+      push    es          ; Se salvan los registros
+      pusha               ; Carga de DS y ES con el valor del selector
+  	  push   ebx ;pid
+  	  push   eax ;call
+
+      call   int_79
+
+	  pop eax
+	  pop ebx
+
+      mov   al,20h			; Envio de EOI generico al PIC
+      out   20h,al
+	  popa
+      pop    es
+      pop    ds
+      iret
+
+
 _Halt:			; Should lock everything?
 		hlt			; wait for HPET/PIT
 		ret
@@ -214,23 +294,6 @@ _out:
 		pop		ebp
 		ret
 
-_inw:
-		push	ebp
-		mov		ebp, esp		; Stack frame
-		mov		edx, [ebp+8]    ; Puerto
-		mov		eax, 0          ; Limpio eax
-		in		ax, dx
-		pop		ebp
-		ret
-
-_outw:
-		push	ebp
-		mov		ebp, esp		; Stack frame
-		mov		edx, [ebp+8]   	; Puerto
-		mov		eax, [ebp+12]  	; Lo que se va a mandar
-		out		dx, ax
-		pop		ebp
-		ret
 
 
 ; Debug para el BOCHS, detiene la ejecución. Para continuar colocar en el BOCHSDBG: set $eax=0
