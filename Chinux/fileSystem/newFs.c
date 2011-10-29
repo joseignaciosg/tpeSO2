@@ -628,6 +628,7 @@ void ls(char * path){
 	iNode * posible_inode = current;
 	posible_inode = parser_path(path, posible_inode);
 
+	printf("inside ls\n");
 	if ( posible_inode == NULL )
 	{
 		printf("Wrong name or path\n");
