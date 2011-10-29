@@ -350,6 +350,10 @@ void getTerminalSize_in_kernel(int * size){
 	(*size) = terminals[currentTTY].buffer.size;
 }
 
+void getTerminalCurPos_in_kernel(int * curpos){
+	(*curpos) = terminals[currentProcessTTY].curpos;
+}
+
 
 void int_79(size_t call, size_t param){
 	switch(call){
@@ -370,6 +374,10 @@ void int_79(size_t call, size_t param){
 		break;
 	case TERM_SIZE:
 		getTerminalSize_in_kernel(param); /*param == *size*/
+		break;
+	case TERM_CURPOS:
+		getTerminalCurPos_in_kernel(param); /*param == *curpos*/
+		break;
 	}
 }
 

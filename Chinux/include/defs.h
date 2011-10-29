@@ -33,6 +33,7 @@
 #define CLEAR_TERM 10
 #define WAIT_PID 11
 #define TERM_SIZE 12
+#define TERM_CURPOS 13
 
 #define TRUE 1
 #define FALSE 0

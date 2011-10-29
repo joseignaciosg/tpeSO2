@@ -31,7 +31,8 @@ void kill(int pid){
 	_int_79_caller(KILL, pid);
 }
 
-int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, char** argv, int stacklength, int priority, int isFront){
+int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, char** argv, int stacklength, int priority, int isFront)
+{
 	createProcessParam * param = (createProcessParam *)malloc(sizeof(createProcessParam));
 	strcopy( param->name, name, str_len(name) );
 	param->process = process;
@@ -45,7 +46,8 @@ int CreateProcessAt(char* name, int (*process)(int,char**), int tty, int argc, c
 	return nextPID++;
 }
 
-void clearTerminalBuffer( int ttyid){
+void clearTerminalBuffer( int ttyid)
+{
 	_int_79_caller(CLEAR_TERM,ttyid);
 }
 
@@ -57,5 +59,10 @@ void waitpid(int pid)
 void getTerminalSize(int * size)
 {
 	_int_79_caller(TERM_SIZE,size);
+}
+
+void getTerminalCurPos(int * curpos)
+{
+	_int_79_caller(TERM_CURPOS,curpos);
 }
 

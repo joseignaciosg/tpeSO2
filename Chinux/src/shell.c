@@ -41,7 +41,6 @@ extern int currentProcessTTY;
 extern int currentTTY;
 extern int CurrentPID;
 extern int logPID;
-extern TTY terminals[4];
 extern user admin;
 
 void logout(int argc, char * argv[]);
@@ -127,8 +126,8 @@ showLastCommand() {
 				deleteCharFromBuff();
 			}
 		}
-		if (terminals[currentTTY].buffer.array[0]) {
-			getTerminalSize(&size);
+		getTerminalSize(&size);
+		if (size!=0) {
 			for (i = 0; i < size; i++) {
 				deleteCharFromBuff();
 			}
@@ -158,8 +157,8 @@ showPreviousCommand() {
 			for (i = 0; i < size; i++) {
 				deleteCharFromBuff();
 			}
-			if (terminals[currentTTY].buffer.array[0]) {
-				getTerminalSize(&size);
+			getTerminalSize(&size);
+			if (size!=0) {
 				for (i = 0; i < size; i++) {
 					deleteCharFromBuff();
 				}
@@ -219,7 +218,7 @@ int
 parseBuffer() {
 	int invalidcom = FALSE;
 	int cleared_screen = FALSE;
-	int isFront = 1, pid, i,size;
+	int isFront = 1, pid, i,size,curpos;
 	getTerminalSize(&size);
 
 
@@ -317,7 +316,8 @@ parseBuffer() {
 		isFront = 0;
 	}
 
-	if (terminals[currentProcessTTY].curpos > 80 * 24 * 2) {
+	getTerminalCurPos(&curpos);
+	if (curpos > 80 * 24 * 2) {
 		scrolldown();
 		if (invalidcom && buffcopy[0]) {
 			invalidcom = FALSE;
