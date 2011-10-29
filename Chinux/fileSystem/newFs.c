@@ -1,289 +1,5 @@
 #include "../include/fs.h"
 
-<<<<<<< HEAD
-
-/*
- *
- * Defines 
- * 
- * 
- */
-
-#define OK_STATUS 1
-#define WRONG_PATH 2
-#define PARSING_PATH 1
-#define END_PATH 3
-#define MAX_LENGHT_NAME 15
-#define MAX_COMMAND_LENGHT 200
-#define BARRA 20
-#define PUNTO 21
-#define CARACTER 22
-#define FREE 0
-#define USED 1
-#define NO_SPACE -1
-
-/* BitMap Defines */
-
-#define N 32
-#define FREE 0
-
-/* File System Defines */
-#define NUMBER_DIRECT_BLOCKS 12
-#define MAX_BLOCKS_NUMBER 500
-//#define DISK_SIZE 262144 // Son BLOCK_SIZE bloques de BLOCK_SIZEK
-
-/* Function parser Defines */
-
-#define MKDIR 0
-#define CD 1
-#define LS 2
-#define RMDIR 3
-
-/* File Types */
-
-#define UNKNOWN 0
-#define FILE 1
-#define DIRECTORY 2
-#define CHARACTER_DEVICE 3
-#define BLOCK_DEVICE 4 
-#define NAMED_PIPE 5
-#define SOCKET 6 //NO USAR
-#define SYMBOLIC_LINK 7 //NO USAR
-
-/* NEW DEFINES */
-
-#define BLOCK_SIZE 512
-#define	BITMAPSECTOR (SUPERBLOCKSECTOR+1)
-#define	SUPERBLOCKSECTOR 1
-#define INODEMAPSECTOR (BITMAPSECTOR + (BITMAP_SIZE/512) )
-#define INODETABLESECTOR (INODEMAPSECTOR + (INODEMAP_SIZE/512) )
-#define BITMAP_SIZE 2048
-#define INODEMAP_SIZE	512
-#define DISK_SIZE 1048576
-#define INODETABLE_SIZE (INODEMAP_SIZE * 4)
-#define BITMAP 1
-#define INODEMAP 2
-#define HEADER_BLOCKS ((BLOCK_SIZE + BLOCK_SIZE + BITMAP_SIZE + INODEMAP_SIZE + INODETABLE_SIZE + BLOCK_SIZE)/512)
-/*
- *
- * Structures 
- *
- *
- */
-
-typedef struct{
-	int direct_blocks[NUMBER_DIRECT_BLOCKS];
-	//Indirect blocks.
-	//Double Indirectblocks.
-}dataStream;
-
-typedef struct{
-	int type;
-	int inode;
-	int lenght;	
-	char name[52];
-}directoryEntry;
-
-typedef struct{
-	int identifier;
-	int iNode_number;
-	int uid;
-	int gid;
-	int mode;
-	int size;
-	dataStream data;
-	char relleno[56];
-}iNode;
-
-typedef struct fsNode{
-	struct fsNode * son;
-	struct fsNode * father;
-	iNode * inode;
-	char * name;
-	int last;
-}fsNode;
-
-typedef struct{
-	char * name;
-	int blockSize;
-	int freeBlocks;
-	int usedBlocks;
-	iNode * root;
-}masterBlock;
-
-typedef struct{
-	int existFS;
-}masterBootRecord;
-
-typedef struct{
-	int data[BITMAP_SIZE/512];
-}BM;
-
-typedef struct{
-	int data[INODEMAP_SIZE/512];
-}IM;
-
-typedef struct{
-	void * disk;
-}virtualDisk;
-
-typedef struct{
-	int fd;
-	char * path;
-}fileDescriptor;
-
-typedef int word_t;
-
-enum { WORD_SIZE = sizeof(word_t) * 8 };
-
-/* Functions */
-
-inline int bindex(int b);
-inline int boffset(int b);
-void set_bit(int b, int mode);
-void clear_bit(int b, int mode); 
-int get_bit(int b, int mode);
-void clear_all(int mode);
-void set_all(int mode);
-int search_free_blocks(int quantityBlocks);
-void free_used_blocks(int init_block, int quantity, int mode);
-
-void write_disk(void * disk, int sector, void * msg, int count, int offset);
-void * read_disk(void * disk,int sector, void * msg, int count, int lenght);
-
-void init_bitmap();
-void init_inodemap();
-void init_filesystem( char * filesystem_name, masterBootRecord * mbr);
-void load_filesystem();
-
-void recursive_remove( iNode * current );
-int is_base_case( iNode * current );
-
-iNode * search_directory( char * name, iNode * node);
-void print_directories(iNode * current);
-
-
-iNode * parser_path(char * path, iNode * posible_inode);
-void makeDir(char *);
-void rmDir(char *);
-void cd(char *);
-void ls(char *);
-
-/* VFS Functions Declartions */
-
-int creat (const char *filename, mode_t mode);
-int open (const char *filename, int flags, mode_t mode);
-int read(int fd, char *buf, int n);
-int write(int fd, char *buf, int n);
-int close(int fd);
-
-void insert_file_entry(iNode * newFile, iNode * current, char * name);
-iNode * insert_file( char * name, size_t mode, iNode * current );
-
-/*FS*/
-
-iNode * fs_creat_inode(int identifier, int mode, int size, iNode * current);
-void fs_init_inode( iNode * inode, int id, int md, int sz, iNode * current);
-dataStream * fs_init_dataStream(int size,int id, int number, iNode * current);
-iNode * fs_get_inode(int number);
-int fs_insert_inode(iNode * node);
-void init_root();
-void insert_directory( char * name, iNode * current );
-void insert_directory_entry(iNode * newDirectory, iNode * current, char * name);
-
-void substr(char dest[], char src[], int offset, int len);
-
-/* READ AND WRITE */
-
-iNode * do_creat(char * filename, mode_t mode, iNode * current);
-int do_write(int fd, char * buf, int n);
-int do_read(int fd, char * buf, int n);
-int read_inode(iNode * inode, char * buf, int n);
-void write_inode(iNode * inode, char * buf, int n);
-
-=======
->>>>>>> 1f272b21b155654d8528b28af414cd3c2492ff70
-/* Global Variables*/
-
-//char * userName = "nloreti";
-//fsNode * current;
-//int session_uid;
-//int session_gid;
-//char * username;
-
-
-
-/* Main */
-/*void 
-main(){
-
-	vDisk = (virtualDisk*)malloc(sizeof(virtualDisk));
-	0 = (void *)malloc(DISK_SIZE);
-
-	masterBootRecord * mbr = (masterBootRecord *)malloc(512);
-	superblock = (masterBlock*)malloc(512);		
-	bitmap = (BM*)calloc(BITMAP_SIZE,1);	
-	inodemap = (IM*)calloc(INODEMAP_SIZE,1);
-	
-	
-	read_disk(0,0,mbr,BLOCK_SIZE,0);
-
-	if ( mbr->existFS == 0 ){
-		init_filesystem("Chinux", mbr);
-	}else{
-		load_filesystem();
-	}
-
-	printf("mbr:%d\n",mbr->existFS);
-	read_disk(0,1,superblock,BLOCK_SIZE,0);
-	printf("name:%s\nblock:%d\nfreeBlocks:%d\nusedBlocks:%d\n",superblock->name, superblock->blockSize, superblock->freeBlocks, superblock->usedBlocks);
-	printf("InodeSize:%d\n",sizeof(iNode));
-	printf("Directory:%d\n",sizeof(directoryEntry));//16 Directorios o archivos en bloques directos..
-
-	iNode * nodo = fs_creat_inode(DIRECTORY,777,512,superblock->root);
-	fs_insert_inode(nodo);
-	iNode * nodo3 = fs_creat_inode(DIRECTORY,737,512,superblock->root);
-	fs_insert_inode(nodo3);
-
-	//nodo->iNode_number = 20;
-	printf("\n\nTABLA DATOS\n");
-	printf("inode-number:%d\n",nodo->iNode_number);		
-	printf("mode:%d\n",nodo->mode);
-	printf("size:%d\n",nodo->size);
-	printf("iden:%d\n",nodo->identifier);
-
-	
-	iNode * nodo2 = fs_get_inode(nodo->iNode_number);
-	printf("inode-number:%d\n",nodo->iNode_number);		
-	printf("mode:%d\n",nodo2->mode);
-	printf("size:%d\n",nodo2->size);
-	printf("iden:%d\n",nodo2->identifier);
-
-	insert_directory("Hola",superblock->root);
-	//ls("asd");
-	makeDir("comostas");
-	print_directories(superblock->root);
-	makeDir("Hola/Comocomo");
-	makeDir("Hola/lala");
-	makeDir("Hola/asd");
-	cd("Hola");
-	print_directories(current);
-	rmDir("asd");
-	print_directories(current);
-	iNode * ret = do_creat("nico.txt",999,current);
-	char * buffer = "holahola";
-<<<<<<< HEAD
-	write_inode(ret,buffer,strlen(buffer));
-=======
-	write_inode(ret,buffer,str_len(buffer));
->>>>>>> 1f272b21b155654d8528b28af414cd3c2492ff70
-	//makeDir("/Hola/asd");
-	//print_directories(current);
-	
-
-	
-}*/
-
 int write_disk(int ata, int sector, void * msg, int count, int offset){
 	return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
 }
@@ -595,11 +311,7 @@ int fs_insert_inode(iNode * node){
 	int sector = number/4;
 	int offset = number%4;
 	//iNode * node2 = malloc(sizeof(iNode));
-<<<<<<< HEAD
-	void * recieve = malloc(BLOCK_SIZE);
-=======
 	void * recieve = (void *)malloc(BLOCK_SIZE);
->>>>>>> 1f272b21b155654d8528b28af414cd3c2492ff70
 	//void * recieve2 = malloc(BLOCK_SIZE);*/
 	
 	if ( get_bit(number, INODEMAP) == 0 ){
@@ -684,11 +396,8 @@ void insert_directory_entry(iNode * newDirectory, iNode * current, char * name){
 }
 
 
-<<<<<<< HEAD
-iNode * insert_file( char * name, size_t mode, iNode * current ){
-=======
 iNode * insert_file( char * name, int mode, iNode * current ){
->>>>>>> 1f272b21b155654d8528b28af414cd3c2492ff70
+
 	//TODO: CRear el inodo de directorio con todas sus entradas.
 	iNode * newFile = (iNode *)malloc(sizeof(iNode));
 	newFile =  fs_creat_inode(FILE,mode,0,current);
@@ -1012,18 +721,14 @@ void recursive_remove( iNode * current ){
 	}
 }
 
-<<<<<<< HEAD
-iNode * do_creat(char * filename, mode_t mode, iNode * current){
-=======
 iNode * do_creat(char * filename, int mode, iNode * current){
->>>>>>> 1f272b21b155654d8528b28af414cd3c2492ff70
+
 
 	int i;
 	iNode * ret = insert_file(filename,mode,current);
 	return ret;//TODO:Aca devolver lo que le sirva al FDs
 		
 }
-
 
 
 void write_inode(iNode * inode, char * buf, int n){	
@@ -1036,18 +741,6 @@ void write_inode(iNode * inode, char * buf, int n){
 
 	int freeblock = search_free_blocks( newrequeried_blocks );
 	
-<<<<<<< HEAD
-	if ( freeblock != -1 ){
-		//LEO Y ARMO LA DATA	
-		char * buffer = (char *)malloc(file_size + n);
-		read_disk(vDisk->disk,init_block,buffer,quantity*BLOCK_SIZE,0);
-		memcpy((buffer+file_size),buf,n);
-		//ESCRIBO EN DISCO
-		write_disk(vDisk->disk,freeblock,buffer,newrequeried_blocks,0);
-		//UPDATE DE INODO
-		inode->data.direct_blocks[0] = freeblock;
-		inode->data.direct_blocks[1] = newrequeried_blocks;
-=======
 	//printf("WRITE!!\nFile_Size:%d\nrequiered:%d\ninit_block:%d\nquant:%d\nfreeblock:%d\n",file_size,newrequeried_blocks,init_block,quantity,freeblock);
 	if ( freeblock != -1 ){
 		//LEO Y ARMO LA DATA	
@@ -1065,7 +758,7 @@ void write_inode(iNode * inode, char * buf, int n){
 		inode->data.direct_blocks[0] = freeblock;
 		inode->data.direct_blocks[1] = newrequeried_blocks;
 		inode->size = file_size + n;
->>>>>>> 1f272b21b155654d8528b28af414cd3c2492ff70
+
 		//LIBERO LO VIEJO
 		free_used_blocks(init_block,quantity, BITMAP);
 		//INSERTO EL INODE
@@ -1083,12 +776,6 @@ int read_inode(iNode * inode, char * buf, int n){
 	int i,lastblock;
 	int init_block = inode->data.direct_blocks[0]; 
 	int quantity = inode->data.direct_blocks[1];
-<<<<<<< HEAD
-	if ( n < (quantity*BLOCK_SIZE) ){
-		read_disk(vDisk->disk,init_block,buf,n,0);
-	}else{
-		read_disk(vDisk->disk,init_block,buf,BLOCK_SIZE*quantity,0);
-=======
 
 	char * receive_buffer = (char *) malloc(quantity*512);
 
@@ -1099,25 +786,73 @@ int read_inode(iNode * inode, char * buf, int n){
 	}else{
 		read_disk(0,init_block,receive_buffer,quantity*512,0);
 		memcpy(buf,receive_buffer,n);
->>>>>>> 1f272b21b155654d8528b28af414cd3c2492ff70
+
 	}
 
-	return 0;	
+	return n;//CAMBIAR	
 
 }
 
+iNode * do_creat(char * filename, int mode, iNode * current){
+
+	int i;
+	iNode * ret = insert_file(filename,mode,posible_inode);
+	insert_fd(ret->iNode_number);
+	return ret;//TODO:Aca devolver lo que le sirva al FDs
+
+}
+
+
 int do_write(int fd, char * buf, int n){
 	
-	int inodenumber = 2;//buscar en fd el inodo
-	iNode * inode =	fs_get_inode(2);
+	int inode_number = search_for_fd(fd);//buscar en fd el inodo
+	iNode * inode =	fs_get_inode(inode_number);
 	write_inode(inode, buf,n);
 	
 }
 
 int do_read(int fd, char * buf, int n){
-	return 0;
+
+	int inode_number = search_for_fd(fd);//buscar en fd el inodo
+	iNode * inode =	fs_get_inode(inode_number);
+	return read_inode(inode, buf,n);
 }
 
+typedef struct{
+	int fd;
+	int inode;
+}filedescriptor
+
+fileDescriptor * fd_table = (fileDescriptor *)calloc(100,1);
+
+int search_for_fd(int fd){
+	int i;
+	for ( i=0; i<100;i++){
+		if ( fd == fd_table[i].fd ){
+			return fd_table[i].inode;
+		}
+	}
+	return -1;
+}
+
+int insert_fd(int inode_number){
+	int i;
+	for(i=0;i<100;i++){
+		if ( fd_table[i].fd == 0){
+			fd_table[i].fd = i;
+			fd_table[i].inode = inode_number;
+			return i;
+		}
+	}
+	return -1;
+}
+
+void delete_fd(int filedescriptor){
+
+	fd_table[filedescriptor].fd = 0;
+	//TODO:CERRAR ESE INODO;
+	
+}
 
 
 
@@ -1148,23 +883,20 @@ void substr(char dest[], char src[], int offset, int len)
 
 
 int creat (const char *filename, int mode){
-	//do_creat(filename,mode);
+	do_creat(filename,mode);
 }
 
-<<<<<<< HEAD
-int open (const char *filename, int flags, mode_t mode){
-=======
+
 int open (const char *filename, int flags, int mode){
->>>>>>> 1f272b21b155654d8528b28af414cd3c2492ff70
 	return 0;
 }
 
 int read(int fd, char *buf, int n){
-	return 0;
+	do_read(fd,buf,n);
 }
 
 int write(int fd, char *buf, int n){
-	return 0;
+	do_write(fd,buf,n);
 }
 
 int close(int fd){
