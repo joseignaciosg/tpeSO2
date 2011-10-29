@@ -14,6 +14,7 @@
 
 
 char buffcopy[BUFFER_SIZE];
+char buffcopyparsed[10][BUFFER_SIZE];
 
 /*variables used in shell*/
 int keypressed = FALSE;

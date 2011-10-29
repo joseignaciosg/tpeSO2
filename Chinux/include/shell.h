@@ -26,6 +26,7 @@ extern unsigned supr_state;
 extern unsigned up_arrow_state;
 extern unsigned down_arrow_state;
 extern char buffcopy[BUFFER_SIZE];
+extern char buffcopyparsed[10][BUFFER_SIZE];
 
 /*
  * global variables used for the video
