@@ -338,9 +338,12 @@ iNode * search_directory(char * name, iNode * actual_node){
 	directoryEntry * dr = (directoryEntry*)calloc(64*96,1);
 	read_disk(0,init_block,dr,(BLOCK_SIZE*12),0);
 	//printf("parcialName:%s\n",name);
+	name = "hola";
 	int i;
-	for(i=1;i<96;i++){
-		if( strcmp(name,dr[i].name) == 1){			
+	for(i=1;i<10;i++){
+		printf("\nmepasan:%s\tNAME:%s",name,dr[i].name);
+		if( strcmp(name,dr[i].name) == 1){
+			printf("LLEGO\n");	
 			return fs_get_inode(dr[i].inode);
 		}
 	}
@@ -472,9 +475,20 @@ iNode * parser_path(char * path, iNode * posible_inode){
 		
 		if ( path[i] == '\0' )
 		{
-			path_parsing = END_PATH;
+				path_parsing = END_PATH;
+				path_status = OK_STATUS;
+				buffer[j] = '\0';
+			
+				if( ( temp_inode = search_directory(buffer, posible_inode) ) != NULL)
+				{
+					posible_inode = temp_inode;
+					j=0;								
+				}else
+				{
+					path_status = WRONG_PATH;
+				}			
 		}
-		if( status == BARRA )
+		else if( status == BARRA )
 		{
 			if ( path[i] == '/' )
 			{
@@ -988,9 +1002,68 @@ void cat( char * filename ){
 //Que ande el Path absoluto...
 
 void link (char * path1, char * path2){
-	//Tomar la data del inodo del primer file, si no existe devolver error;
-	//Ir hasta el directorio que me dicen.
-	//Crear el archivo, copiarle toda la data del primero
-	//retornar
+
+	if ( strcmp("hola",path1) == 1){
+		printf("ENTRO\n");
+	}	
+	int path2_len, i, index_file_name,quant_chars;
+	char * directory_path;
+	char * name;
+	iNode * path1_inode = current;
+	
+	//path1_inode = parser_path(path1, path1_inode);
+	path1_inode = search_directory(path1,superblock->root);
+	
+	if ( path1_inode == NULL )
+	{
+		printf("Wrong name or path\n");
+	}
+
+	//Busco el primer / de derecha a izquierda para sacar el nombre de archivo
+	path2_len = str_len(path2);
+	for ( i = path2_len; i >= 0; i--){
+		if ( path2[i] == '/' ){
+			index_file_name = i;
+			break;
+		}
+	}
+	//Si encontro una /
+	if( i >= 0 ){
+		quant_chars = path2_len - (path2_len - index_file_name) + 1;
+		directory_path = malloc(quant_chars);
+		name = malloc(path2_len - quant_chars);
+		memcpy(directory_path,path2,quant_chars);
+		memcpy(name,path2+quant_chars,path2_len-quant_chars);
+		
+		iNode * path2_inode = current;
+		path2_inode = parser_path(directory_path, path2_inode);
+		iNode * link_node = insert_file(name,777,path2_inode);
+		copy_link_inode(path1_inode, link_node);
+	}else{
+	//Si no encontro una barra es el nombre de archivo en el current.
+		iNode * path2_inode = current;
+		iNode * link_node = insert_file(path2,2,path2_inode);
+		copy_link_inode(path1_inode, link_node);
+		fs_insert_inode(link_node);
+	}
+	
 	return;
+}
+
+/*typedef struct{
+	int identifier;
+	int iNode_number;
+	int uid;
+	int gid;
+	int mode;
+	int size;
+	dataStream data;
+	char relleno[56];
+}iNode;*/
+
+void copy_link_inode(iNode * inode, iNode * reciever_inode){
+	
+	reciever_inode->identifier = LINK;
+	reciever_inode->link = inode->iNode_number;
+
 }
