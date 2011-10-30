@@ -339,7 +339,7 @@ iNode * search_directory(char * name, iNode * actual_node){
 	read_disk(0,init_block,dr,(BLOCK_SIZE*12),0);
 	//printf("parcialName:%s\n",name);
 	int i;
-	for(i=2;i<40;i++){
+	for(i=1;i<40;i++){
 		if( strcmp(name,dr[i].name) == 1){			
 			return fs_get_inode(dr[i].inode);
 		}
@@ -482,10 +482,12 @@ iNode * parser_path(char * path, iNode * posible_inode){
 			}else if ( path[i] == '.' )
 			{
 				status = PUNTO;
+				i++;
 			}else
 			{
 				status = CARACTER;
-				buffer[j++] = path[i]; 			
+				buffer[j++] = path[i++]; 
+				buffer[j];			
 			}
 		}
 		else if (status == PUNTO )
@@ -497,6 +499,8 @@ iNode * parser_path(char * path, iNode * posible_inode){
 			else if ( path[i] == '/')
 			{
 				status = BARRA;
+				i++;
+				
 			}
 			else if ( path[i] == '.' )
 			{
@@ -505,8 +509,7 @@ iNode * parser_path(char * path, iNode * posible_inode){
 					if ( i > 2 && path[i-2] != '/')
 						path_status = WRONG_PATH;				
 				}
-				else
-				{
+				else{
 					posible_inode = search_directory("..",posible_inode);
 					i++;
 					
@@ -518,6 +521,7 @@ iNode * parser_path(char * path, iNode * posible_inode){
 				status = CARACTER;
 				buffer[j++] = '.';
 				buffer[j++] = path[i];
+				buffer[j];	//ALGUIEN QUE ME EXPLIQUE POR QUE SE EJECUTA ESTO!!			
 			}
 		}
 		else if ( status == CARACTER )
@@ -528,7 +532,8 @@ iNode * parser_path(char * path, iNode * posible_inode){
 				path_status = OK_STATUS;
 				buffer[j] = '\0';
 			
-				if( ( temp_inode = search_directory(buffer, posible_inode) ) != NULL){
+				if( ( temp_inode = search_directory(buffer, posible_inode) ) != NULL)
+				{
 					posible_inode = temp_inode;
 					j=0;								
 				}else
@@ -536,7 +541,7 @@ iNode * parser_path(char * path, iNode * posible_inode){
 					path_status = WRONG_PATH;
 				}			
 			}
-			if ( path[i] == '/')
+			else if ( path[i] == '/')
 			{
 				status = BARRA;
 				buffer[j] = '\0';
@@ -548,7 +553,7 @@ iNode * parser_path(char * path, iNode * posible_inode){
 					path_status = WRONG_PATH;
 				}
 			}
-			if ( path[i] == '.' )
+			else if ( path[i] == '.' )
 			{
 				status = PUNTO;
 				buffer[j++] = path[i];
@@ -556,6 +561,7 @@ iNode * parser_path(char * path, iNode * posible_inode){
 			{
 				status = CARACTER;
 				buffer[j++] = path[i];
+				buffer[j];
 			}
 	
 			i++;
@@ -571,6 +577,7 @@ iNode * parser_path(char * path, iNode * posible_inode){
 //DONE
 void cd(char * path){
 	
+	printf("llego:%s\n",path);
 	iNode * posible_inode = current;
 	posible_inode = parser_path(path, posible_inode);
 
@@ -587,6 +594,11 @@ void cd(char * path){
 
 //DONE
 void makeDir(char * newName){
+
+	printf("Me pasan:%s\n",newName);
+	/*printf("%d\n",superblock->root);
+	printf("%d\n",current);
+	printf("DataBlock:%d\n",superblock->root->data.direct_blocks[0]);*/
 
 	char * parcialName = (char*)malloc(25);
 	iNode * makeDir_current = current;
@@ -624,7 +636,10 @@ void makeDir(char * newName){
 //DONE!
 void ls(char * path){
 	
-	int i;
+	printf("\n");
+	print_directories(current);
+	//printf("\n");
+	/*int i;
 	iNode * posible_inode = current;
 	posible_inode = parser_path(path, posible_inode);
 
@@ -637,7 +652,7 @@ void ls(char * path){
 	{
 		print_directories(posible_inode);
 	}
-	return;
+	return;*/
 	
 }
 
