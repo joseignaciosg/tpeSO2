@@ -567,6 +567,10 @@ void int_79(size_t call, size_t param){
 	case SEM_DOWN:
 		semget_in_kernel(param);/*param == key*/
 		break;
+	case MK_DIR:
+		makeDir((char *)param);/*param == nameDIR*/
+		break;
+
 	}
 }
 

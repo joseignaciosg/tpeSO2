@@ -315,9 +315,9 @@ parseBuffer() {
 		printf("name:%s password:%s\n", usr.name, usr.password);
 		//pid = CreateProcessAt("Top", (int(*)(int, char**))top, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(strcmp("mkdir ", buffcopyparsed[0])){
-		makeDir(buffcopyparsed[1]);
+		mkDir(buffcopyparsed[1]);
 		isFront = 0;
-	}else if(strcmp("ls ", buffcopyparsed[0])){
+	}else if(strcmp("ls", buffcopyparsed[0])){
 		ls(buffcopyparsed[1]);
 		isFront = 0;
 	}else if(strcmp("rm ", buffcopyparsed[0])){

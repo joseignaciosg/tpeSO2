@@ -15,6 +15,7 @@
 #include "../include/utils.h"
 #include "../include/process.h"
 #include "../include/defs.h"
+#include "../include/pisix.h"
 
 
 extern int nextPID;
@@ -93,4 +94,8 @@ void up(int key){
 
 void down(int key){
 	_int_79_caller(SEM_DOWN,key);
+}
+
+void mkDir(char * newName){
+	_int_79_caller(MK_DIR,newName);
 }

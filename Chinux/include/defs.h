@@ -39,6 +39,7 @@
 #define SEM_GET 16
 #define SEM_UP 17
 #define SEM_DOWN 18
+#define MK_DIR 19
 
 #define TRUE 1
 #define FALSE 0
