@@ -134,6 +134,7 @@ typedef struct{
 typedef struct{
 	int fd;
 	int inode;
+	int sem_key;
 }filedescriptor;
 
 typedef int word_t;

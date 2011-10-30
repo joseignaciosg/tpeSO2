@@ -22,5 +22,11 @@ void prueba2(int argc, char * argv[]);
 
 void top(int argc, char * argv[]);
 
+void fifo_writer_test(int argc, char * argv[]);
+
+void fifo_reader_test(int argc, char * argv[]);
+
+
+
 
 #endif

@@ -104,4 +104,21 @@ void top(int argc, char * argv[])
 	}
 }
 
+void fifo_writer_test(int argc, char * argv[]){
+	int * fd = malloc(2*sizeof(int));
+	char * path = "hello";
+	mkfifo( path, fd);
+	CreateProcessAt("fifo_reader_test", fifo_reader_test,1, (int)fd, 0, 0x400, 2, 1);
+	write_fifo(fd[0],"teta",4);
+
+}
+
+void fifo_reader_test(int argc, char * argv[]){
+	int * fd = (int *)argc;
+	char * buff = malloc(8);
+	read_fifo(fd[0],buff, 4);
+	printf("peron tiene una %s\n",buff);
+}
+
+
 

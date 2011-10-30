@@ -169,8 +169,9 @@ typedef struct{
 }createProcessParam;
 
 typedef struct{
-	char * path;
-	size_t  fd;
+	char * path;/*path where is fifo is supposed to be created*/
+	size_t fd1;/*fifo«s file descriptor 1*/
+	size_t fd2;/*fifo«s file descriptor 2*/
 }fifoStruct;
 
 typedef struct{
@@ -179,6 +180,12 @@ typedef struct{
 	int status;
 }semItem;
 
+typedef struct{
+	int fd;
+	char * file;
+	int curr_size;
+	int sem_key;
+}my_fdItem;
 
 #endif
 
