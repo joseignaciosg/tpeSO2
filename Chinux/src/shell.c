@@ -274,6 +274,9 @@ parseBuffer() {
 	}else if(strcmp("prueba", buffcopy)){
 		//putc('\n');
 		pid = CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
+	}else if(strcmp("fifo_writer_test", buffcopy)){
+			//putc('\n');
+			pid = CreateProcessAt("fifo_writer_test", (int(*)(int, char**))fifo_writer_test, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(strcmp("prueba2", buffcopy)){
 		//putc('\n');
 		pid = CreateProcessAt("Prueba2", (int(*)(int, char**))prueba2, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
