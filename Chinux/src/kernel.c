@@ -503,15 +503,16 @@ semget_in_kernel(semItem * param){
 		}
 		param->key = semCount;
 		param->status = 0; /*ok*/
+		param->blocked_proc_pid = -1; /*ok*/
 		semaphoreTable[semCount++] = (*param);
 }
 
 void
 up_in_kernel(int key){
 	/*if the process is blocked-> unblock*/
-	PROCESS * proc = GetProcessByPID(CurrentPID);
+	PROCESS * proc = GetProcessByPID(semaphoreTable[key].blocked_proc_pid);
 	if (proc->state = BLOCKED){
-		awake_process(CurrentPID);
+		awake_process(proc->pid);
 	}
 	semaphoreTable[key].value++;
 }
@@ -519,6 +520,7 @@ up_in_kernel(int key){
 void
 down_in_kernel(int key){
 	if (semaphoreTable[key].value == 0){
+		semaphoreTable[key].blocked_proc_pid = CurrentPID;
 		block_process_in_kernel(CurrentPID);
 	}
 	semaphoreTable[key].value--;

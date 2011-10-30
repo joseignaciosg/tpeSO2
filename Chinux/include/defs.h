@@ -177,6 +177,7 @@ typedef struct{
 typedef struct{
 	int key;
 	int value;
+	int blocked_proc_pid;
 	int status;
 }semItem;
 
