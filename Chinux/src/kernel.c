@@ -168,17 +168,38 @@ kmain()
 	unmaskPICS();
 	SetupScheduler();
 
+	/*int h;
+	char * buffer = calloc(512,512);
+	char * read = calloc(512,512);
+
+	for( h=0;h<(512*512);h++){
+			buffer[h] = '1';
+	}
+	buffer[h] = '\0';	
+	printf("%s",buffer);	
+	h = 0;
+	write_disk(0,h,buffer,(512*512),0);
+	printf("Escribio\n");
+	for(h=0;h<16024*16024;h++);	
+	read_disk(0,h,read,(512*512),0);
+	printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+printf("READ\n");
+	for(h=0;h<16024*16024;h++);		
+	printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+		
+	printf("%s",read);
+	//}*/
 	int h;
-	char * buffer = calloc(512,100);
-	for( h=0;h<100;h++){		
-	write_disk(0,h,buffer,BLOCK_SIZE,0);
+	char * buffer = calloc(512,1);
+	for(h=0;h<200;h++){
+		write_disk(0,h,buffer,BLOCK_SIZE,0);
 	}
 	fd_table = (filedescriptor *)calloc(100,1);
 	masterBootRecord * mbr = (masterBootRecord *)malloc(512);
 	superblock = (masterBlock*)malloc(512);		
 	bitmap = (BM*)calloc(BITMAP_SIZE,1);	
 	inodemap = (IM*)calloc(INODEMAP_SIZE,1);
-	
+	//printf("PASO\n");
 	
 	read_disk(0,0,mbr,BLOCK_SIZE,0);
 

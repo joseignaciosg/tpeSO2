@@ -2,18 +2,48 @@
 #include "../include/kernel.h"
 
 int write_disk(int ata, int sector, void * msg, int count, int offset){
+	
 	return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
+	/*int i;
+	int cantsectors = (int)(count/512) + 1;
+	if ( cantsectors < 128 ){
+		return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
+	}else{
+		for ( i = sector; i < cantsectors; i+=128 ){
+			_disk_write(0x1f0,(char*)(msg),127,i+1);
+		}
+		return _disk_write(0x1f0,(char*)(msg),cantsectors-(i-128),i-128);
+	}*/
 }
 
 int read_disk(int ata,int sector, void * msg, int count, int lenght){
 	return _disk_read(0x1f0,(char*)msg,count/512,sector+1);
+	/*int i;
+	int cantsectors = (int)(count/512) + 1;
+	if ( cantsectors < 128 ){
+		return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
+	}else{
+		for ( i = sector; i < cantsectors; i+=128 ){
+			_disk_write(0x1f0,(char*)(msg),127,i+1);
+		}
+		return _disk_write(0x1f0,(char*)(msg),cantsectors-(i-128),i-128);
+	}*/
 }
 
 void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 	
 	/*mbr sector*/
 	mbr->existFS = 1;
-	write_disk(0, 0,mbr,BLOCK_SIZE,0);
+	/*int i;
+	char * buffer = malloc(5120);
+	char * read_buffer = malloc(5120);
+	for(i=0;i<5120;i++){
+		buffer[i] = '0';
+	}
+	write_disk(0,0,buffer,5120,0);
+	*/
+
+	write_disk(0, 0,mbr,BLOCK_SIZE,0);//BLOCK_SIZE
 	
 	/* superBlock sector */
 	superblock->name = "Chinux";
@@ -341,7 +371,7 @@ iNode * search_directory(char * name, iNode * actual_node){
 	name = "hola";
 	int i;
 	for(i=1;i<10;i++){
-		printf("\nmepasan:%s\tNAME:%s",name,dr[i].name);
+		//printf("\nmepasan:%s\tNAME:%s",name,dr[i].name);
 		if( strcmp(name,dr[i].name) == 1){
 			printf("LLEGO\n");	
 			return fs_get_inode(dr[i].inode);
