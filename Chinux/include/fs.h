@@ -182,8 +182,8 @@ int close(int fd);
 
 int search_for_fd(int fd);
 int insert_fd(int inode);
-void delete_fd(int filedescriptor);
-
+int delete_fd(int filedescriptor);
+int do_close(int fd);
 
 void insert_file_entry(iNode * newFile, iNode * current, char * name);
 iNode * insert_file( char * name, int mode, iNode * current );
@@ -203,12 +203,15 @@ void substr(char dest[], char src[], int offset, int len);
 
 /* READ AND WRITE */
 
-iNode * do_creat(char * filename, int mode);
+int do_creat(char * filename, int mode);
 int do_write(int fd, char * buf, int n);
 int do_read(int fd, char * buf, int n);
 int read_inode(iNode * inode, char * buf, int n);
 void write_inode(iNode * inode, char * buf, int n);
-
+int do_open(char * filename, int flags, int mode);
+int search_for_inode( int inodenumber );
+void touch();
+void cat(char * filename);
 //word_t data[N / 32 + 1];
 BM * bitmap;
 IM * inodemap;

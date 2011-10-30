@@ -206,11 +206,12 @@ void splitbuffer(void)
 		k++;
 		if(buffcopy[j] == ' ' && i < 9)
 		{
-			buffcopyparsed[i][k] = 0;
+			buffcopyparsed[i][k] = '\0';
 			i++; k = 0;
 		}
 		j++;
 	}
+	buffcopyparsed[i][k] = '\0';
 	return ;
 }
 
@@ -221,10 +222,9 @@ parseBuffer() {
 	int cleared_screen = FALSE;
 	int isFront = 1, pid, i,size,curpos;
 	getTerminalSize(&size);
-	
-	fd_table = (filedescriptor *)calloc(100,1);
-	scanf("%s", buffcopy);
 
+	scanf("%s", buffcopy);
+	
 	splitbuffer();
 
 	if(!usrLoged && usrName)
@@ -313,12 +313,22 @@ parseBuffer() {
 		//pid = CreateProcessAt("Top", (int(*)(int, char**))top, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(strcmp("mkdir ", buffcopyparsed[0])){
 		makeDir(buffcopyparsed[1]);
+		isFront = 0;
 	}else if(strcmp("ls ", buffcopyparsed[0])){
 		ls(buffcopyparsed[1]);
+		isFront = 0;
 	}else if(strcmp("rm ", buffcopyparsed[0])){
 		rmDir(buffcopyparsed[1]);
+		isFront = 0;
+	}else if(strcmp("touch", buffcopyparsed[0])){
+		touch();
+		isFront = 0;
+	}else if(strcmp("cat ", buffcopyparsed[0])){
+		cat(buffcopyparsed[1]);
+		isFront = 0;
 	}else if(strcmp("cd ", buffcopyparsed[0])){
 		cd(buffcopyparsed[1]);/*rmDir*/
+		isFront = 0;
 	}else {
 
 		invalidcom = TRUE;

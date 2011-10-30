@@ -804,40 +804,82 @@ int read_inode(iNode * inode, char * buf, int n){
 		memcpy(buf,receive_buffer,n);
 
 	}
-
+	
+	//printf("receive_buffer:%s\n",receive_buffer);
 	return n;//CAMBIAR	
 
 }
 
-iNode * do_creat(char * filename, int mode){
+int do_creat(char * filename, int mode){
 
 	int i;
 	iNode * ret = insert_file(filename,mode,current);
-	insert_fd(ret->iNode_number);
-	return ret;//TODO:Aca devolver lo que le sirva al FDs
+	int fd = insert_fd(ret->iNode_number);
+	return fd;//TODO:Aca devolver lo que le sirva al FDs
 
 }
 
+int do_open(char * filename, int flags, int mode){
+	
+	iNode * posible_file = search_directory(filename, current);
+	printf("size:%d\n",posible_file->size);
+	int fd;	
+	if ( posible_file != NULL)
+	{	
+		if ( (fd = search_for_inode(posible_file->iNode_number)) != -1){
+			return fd;
+		}else{
+			printf("Error opening file\n");
+		}
+	}else
+	{
+		do_creat(filename,mode);		
+		//TODO:Falta todo el tema de permisos y opciones para abrir.
+	}
+			
+}
 
 int do_write(int fd, char * buf, int n){
 	
 	int inode_number = search_for_fd(fd);//buscar en fd el inodo
 	iNode * inode =	fs_get_inode(inode_number);
 	write_inode(inode, buf,n);
+	//printf("buffer:%s\n",buf);
 	
 }
 
 int do_read(int fd, char * buf, int n){
 
+	
 	int inode_number = search_for_fd(fd);//buscar en fd el inodo
 	iNode * inode =	fs_get_inode(inode_number);
-	return read_inode(inode, buf,n);
+	if( n == -1 ){
+		n = inode->size;	
+	}
+	int a = read_inode(inode, buf,n);
+	//printf("buf:%s\nreads:%d\n",buf,a);
+	return a;
+}
+
+int do_close(int fd){
+	return delete_fd(fd);
 }
 
 
+
+int search_for_inode( int inodenumber ){
+	int i;
+	for ( i=1; i<100;i++){
+		if ( inodenumber == fd_table[i].inode ){
+			return fd_table[i].fd;
+		}
+	}
+	return -1;
+}
+
 int search_for_fd(int fd){
 	int i;
-	for ( i=0; i<100;i++){
+	for ( i=1; i<100;i++){
 		if ( fd == fd_table[i].fd ){
 			return fd_table[i].inode;
 		}
@@ -847,7 +889,7 @@ int search_for_fd(int fd){
 
 int insert_fd(int inode_number){
 	int i;
-	for(i=0;i<100;i++){
+	for(i=1;i<100;i++){
 		if ( fd_table[i].fd == 0){
 			fd_table[i].fd = i;
 			fd_table[i].inode = inode_number;
@@ -857,8 +899,10 @@ int insert_fd(int inode_number){
 	return -1;
 }
 
-void delete_fd(int filedescriptor){
+int delete_fd(int filedescriptor){
 	fd_table[filedescriptor].fd = 0;
+	fd_table[filedescriptor].inode = 0;
+	return 1;
 	//TODO:CERRAR ESE INODO;
 }
 
@@ -896,10 +940,10 @@ int creat (char *filename, int mode){
 
 
 int open (const char *filename, int flags, int mode){
-	return 0;
+	do_open(filename,flags,mode);
 }
 
-int read(int fd, char *buf, int n){
+int read(int fd, char * buf, int n){
 	do_read(fd,buf,n);
 }
 
@@ -908,6 +952,28 @@ int write(int fd, char *buf, int n){
 }
 
 int close(int fd){
-	return 0;
+	do_close(fd);
 }
 
+void touch(){
+	printf("\nEJECUTO");
+	int fd = creat("hola.txt",888);
+	char * buffer = "HolaHolaHolaHolax";
+	char * read_buffer = (char *)calloc(str_len(buffer),1);
+	write(fd,buffer,str_len(buffer));
+	read(fd,read_buffer,str_len(buffer));
+	char * buffer2 = "segunda";
+	char * read_buffer2 = malloc(str_len(buffer) + str_len(buffer2));
+	write(fd,buffer2,str_len(buffer) + str_len(buffer2));
+	read(fd,read_buffer2,str_len(buffer)+str_len(buffer2));
+	
+	printf("%s\n",read_buffer2);
+	
+}
+
+void cat( char * filename ){
+	int fd = open(filename,2,2);
+	char * buffer = malloc(14);	
+	read(fd,buffer,-1);
+	printf("%s\n",buffer);
+}
