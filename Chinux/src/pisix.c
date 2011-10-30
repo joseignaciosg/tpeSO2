@@ -85,3 +85,11 @@ void semget(int * key, int initvalue, int * status){
 	(*status) = param->status;
 	(*key) = param->key;
 }
+
+void up(int key){
+	_int_79_caller(SEM_UP,key);
+}
+
+void down(int key){
+	_int_79_caller(SEM_DOWN,key);
+}

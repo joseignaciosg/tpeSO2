@@ -385,6 +385,19 @@ semget_in_kernel(semItem * param){
 		semaphoreTable[semCount++] = (*param);
 }
 
+void
+up_in_kernel(int key){
+	semaphoreTable[key].value++;
+}
+
+void
+down_in_kernel(int key){
+	if (semaphoreTable[key].value == 0){
+		/*TODO bloquear*/
+	}
+	semaphoreTable[key].value--;
+}
+
 
 void int_79(size_t call, size_t param){
 	switch(call){
@@ -417,6 +430,12 @@ void int_79(size_t call, size_t param){
 		break;
 	case SEM_GET:
 		semget_in_kernel((semItem *)param);
+		break;
+	case SEM_UP:
+		semget_in_kernel(param); /*param == key*/
+		break;
+	case SEM_DOWN:
+		semget_in_kernel(param);/*param == key*/
 		break;
 	}
 }
