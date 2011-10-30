@@ -14,6 +14,7 @@
 #include "../include/shell.h"
 #include "../include/utils.h"
 #include "../include/process.h"
+#include "../include/fs.h"
 
 
 DESCR_INT idt[0x90]; /* IDT 144 positions*/
@@ -97,6 +98,34 @@ kmain()
 	initializeIDT();
 	unmaskPICS();
 	SetupScheduler();
+
+	int h;
+	char * buffer = calloc(512,100);
+	for( h=0;h<100;h++){		
+	write_disk(0,h,buffer,BLOCK_SIZE,0);
+	}
+	fd_table = (filedescriptor *)calloc(100,1);
+	masterBootRecord * mbr = (masterBootRecord *)malloc(512);
+	superblock = (masterBlock*)malloc(512);		
+	bitmap = (BM*)calloc(BITMAP_SIZE,1);	
+	inodemap = (IM*)calloc(INODEMAP_SIZE,1);
+	
+	
+	read_disk(0,0,mbr,BLOCK_SIZE,0);
+
+	if ( mbr->existFS == 0 ){
+		init_filesystem("Chinux", mbr);
+	}else{
+		load_filesystem();
+	}
+	
+	/*printf("mbr:%d\n",mbr->existFS);
+	read_disk(0,1,superblock,BLOCK_SIZE,0);
+	printf("name:%s\nblock:%d\nfreeBlocks:%d\nusedBlocks:%d\n",superblock->name, superblock->blockSize, superblock->freeBlocks, superblock->usedBlocks);
+	printf("InodeSize:%d\n",sizeof(iNode));
+	printf("Directory:%d\n",sizeof(directoryEntry));//16 Directorios o archivos en bloques directos..*/	
+	//makeDir("Lala");
+	//makeDir("ASD");
 	
 	ready = NULL;
 	for(i = 0; i < 4; i++)
