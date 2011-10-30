@@ -65,7 +65,31 @@ void getTerminalCurPos(int * curpos)
 	_int_79_caller(TERM_CURPOS,curpos);
 }
 
-void getCurrentTTY(int currtty)
+/*void getCurrentTTY(int currtty)
 {
 	_int_79_caller(CURR_TTY,currtty);
+}*/
+
+int mkfifo( char  * path, size_t  fd)
+{
+	fifoStruct * param = malloc(sizeof(fifoStruct));
+	strcopy(param->path,path, sizeof(path));
+	param->fd = fd;
+	_int_79_caller(MK_FIFO,&param);
+}
+
+void semget(int * key, int initvalue, int * status){
+	semItem * param = malloc(sizeof(semItem));
+	param->value = initvalue;
+	_int_79_caller(SEM_GET,&param);
+	(*status) = param->status;
+	(*key) = param->key;
+}
+
+void up(int key){
+	_int_79_caller(SEM_UP,key);
+}
+
+void down(int key){
+	_int_79_caller(SEM_DOWN,key);
 }

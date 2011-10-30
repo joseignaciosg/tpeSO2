@@ -18,14 +18,14 @@
 //maybe more descriptors could be added later
 
 /*
- * Calls (for int_80 function)
+ * System Calls (for int_80 function)
  */
 #define WRITE 4
 #define READ  5
 #define ERASE 6
 
 /*
- * Calls (for int_79 function)
+ * System Calls (for int_79 function)
  */
 #define KILL 7
 #define BLOCK 8
@@ -35,6 +35,10 @@
 #define TERM_SIZE 12
 #define TERM_CURPOS 13
 #define CURR_TTY 14
+#define MK_FIFO 15
+#define SEM_GET 16
+#define SEM_UP 17
+#define SEM_DOWN 18
 
 #define TRUE 1
 #define FALSE 0
@@ -164,8 +168,16 @@ typedef struct{
 	int isFront;
 }createProcessParam;
 
+typedef struct{
+	char * path;
+	size_t  fd;
+}fifoStruct;
 
-
+typedef struct{
+	int key;
+	int value;
+	int status;
+}semItem;
 
 
 #endif
