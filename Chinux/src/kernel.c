@@ -29,8 +29,6 @@ int currentProcessTTY = 0;
 int logPID;
 TTY terminals[4];
 user admin;
-PROCESS procesos[5];
-STACK_FRAME stacks[5];
 
 extern int timeslot;
 extern int logoutPID;
@@ -562,10 +560,10 @@ void int_79(size_t call, size_t param){
 		semget_in_kernel((semItem *)param);
 		break;
 	case SEM_UP:
-		semget_in_kernel(param); /*param == key*/
+		up_in_kernel(param); /*param == key*/
 		break;
 	case SEM_DOWN:
-		semget_in_kernel(param);/*param == key*/
+		down_in_kernel(param);/*param == key*/
 		break;
 	case MK_DIR:
 		makeDir((char *)param);/*param == nameDIR*/
