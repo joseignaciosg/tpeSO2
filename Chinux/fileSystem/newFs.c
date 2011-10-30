@@ -339,7 +339,7 @@ iNode * search_directory(char * name, iNode * actual_node){
 	read_disk(0,init_block,dr,(BLOCK_SIZE*12),0);
 	//printf("parcialName:%s\n",name);
 	int i;
-	for(i=1;i<40;i++){
+	for(i=1;i<96;i++){
 		if( strcmp(name,dr[i].name) == 1){			
 			return fs_get_inode(dr[i].inode);
 		}
@@ -924,7 +924,7 @@ int delete_fd(int filedescriptor){
 void substr(char dest[], char src[], int offset, int len)
 {
 	int i;
-	for(i = 0; i < len && src[offset + i] != '\0'; i++){
+	for(i = 0; (i+offset) < len && src[offset + i] != '\0'; i++){
 	dest[i] = src[i + offset];
 	}
 	dest[i] = '\0';
@@ -984,6 +984,13 @@ void cat( char * filename ){
 	printf("%s\n",buffer);
 }
 
+//RM directorio creo un subdir, me meto y para volver pincha..WTF
+//Que ande el Path absoluto...
+
 void link (char * path1, char * path2){
+	//Tomar la data del inodo del primer file, si no existe devolver error;
+	//Ir hasta el directorio que me dicen.
+	//Crear el archivo, copiarle toda la data del primero
+	//retornar
 	return;
 }
