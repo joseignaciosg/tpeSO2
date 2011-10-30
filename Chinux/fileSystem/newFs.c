@@ -368,12 +368,12 @@ iNode * search_directory(char * name, iNode * actual_node){
 	directoryEntry * dr = (directoryEntry*)calloc(64*96,1);
 	read_disk(0,init_block,dr,(BLOCK_SIZE*12),0);
 	//printf("parcialName:%s\n",name);
-	name = "hola";
+	//name = "hola";
 	int i;
-	for(i=1;i<10;i++){
-		//printf("\nmepasan:%s\tNAME:%s",name,dr[i].name);
+	for(i=1;i<40;i++){
+		printf("\nmepasan:%s\tNAME:%s",name,dr[i].name);
 		if( strcmp(name,dr[i].name) == 1){
-			printf("LLEGO\n");	
+			//printf("LLEGO\n");	
 			return fs_get_inode(dr[i].inode);
 		}
 	}
@@ -506,7 +506,7 @@ iNode * parser_path(char * path, iNode * posible_inode){
 		if ( path[i] == '\0' )
 		{
 				path_parsing = END_PATH;
-				path_status = OK_STATUS;
+				/*path_status = OK_STATUS;
 				buffer[j] = '\0';
 			
 				if( ( temp_inode = search_directory(buffer, posible_inode) ) != NULL)
@@ -516,9 +516,9 @@ iNode * parser_path(char * path, iNode * posible_inode){
 				}else
 				{
 					path_status = WRONG_PATH;
-				}			
+				}	*/		
 		}
-		else if( status == BARRA )
+		if( status == BARRA )
 		{
 			if ( path[i] == '/' )
 			{
@@ -621,6 +621,7 @@ iNode * parser_path(char * path, iNode * posible_inode){
 //DONE
 void cd(char * path){
 
+	
 	iNode * posible_inode = current;
 	posible_inode = parser_path(path, posible_inode);
 
