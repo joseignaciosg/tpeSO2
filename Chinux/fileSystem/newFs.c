@@ -968,7 +968,7 @@ void touch( char * filename ){
 	char * read_buffer = (char *)calloc(str_len(buffer),1);
 	write(fd,buffer,str_len(buffer));
 	read(fd,read_buffer,str_len(buffer));
-	char * buffer2 = "segunda";
+	char * buffer2 = " segunda";
 	char * read_buffer2 = malloc(str_len(buffer) + str_len(buffer2));
 	write(fd,buffer2,str_len(buffer) + str_len(buffer2));
 	read(fd,read_buffer2,str_len(buffer)+str_len(buffer2));

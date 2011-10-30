@@ -42,14 +42,75 @@ extern int password;
 semItem * semaphoreTable;
 int semCount;
 
+/*for testing fifos*/
+#define MAX_FIZE_SIZE 100
+#define MAX_FIFO 100
+my_fdItem * myfd_table;
+int fileCount;
 
 void
 initializeSemaphoreTable(){
-	semaphoreTable = malloc(sizeof(semItem)*20); /*UP TO 20 semaphores*/
+	semaphoreTable = malloc(sizeof(semItem)*20); /* UP TO 20 semaphores */
 	semCount = 0;
+	myfd_table = malloc(sizeof(my_fdItem)*MAX_FIFO); /* UP TO MAX_FIFO tables */
+	fileCount = 0;
 }
 
+/*for testing fifos*/
+int create_file(){
+	myfd_table[fileCount].fd = fileCount;/*cabeza*/
+	myfd_table[fileCount].file = malloc(sizeof(char)*MAX_FIZE_SIZE);
+	myfd_table[fileCount].curr_size =0;
+	semItem * sem = malloc(sizeof(semItem));
+	sem->value = 0;
+	semget_in_kernel(sem);
+	myfd_table[fileCount].sem_key = sem->key;
+	if (myfd_table[fileCount].sem_key == -1){
+		printf("Not enouth space for more semaphores\n");
+		return -1;
+	}
+	return myfd_table[fileCount++].fd;
+}
 
+void write_fifo(int fd, char *buf, int n){
+	/*buscar el inodo correspondiente al fd
+	*aumentar el semaforo correpondiente tantas
+	*unidades como bytes se escriban
+	*/
+	/*improve!*/
+	int j;
+	if ( n > (MAX_FIZE_SIZE - myfd_table[fd].curr_size) ){
+		memcpy(myfd_table[fd].file,buf ,MAX_FIZE_SIZE - myfd_table[fd].curr_size);
+		for(j=0; j<MAX_FIZE_SIZE - myfd_table[fd].curr_size; j++){
+			up_in_kernel(myfd_table[fd].sem_key);
+		}
+		myfd_table[fd].curr_size = MAX_FIZE_SIZE;
+	}else{
+		memcpy(myfd_table[fd].file, buf ,n);
+		for(j=0; j<n; j++){
+			up_in_kernel(myfd_table[fd].sem_key);
+		}
+		myfd_table[fd].curr_size += n;
+	}
+}
+
+void read_fifo(int fd, char *buf, int n){
+	int j;
+	char * auxbuf;
+	if ( n > MAX_FIZE_SIZE ){
+		n = MAX_FIZE_SIZE;
+	}
+	for (j=0; j<n ; j++){
+		down_in_kernel(myfd_table[fd].sem_key);/*blocking or not*/
+	}
+	memcpy( buf, myfd_table[fd].file , n );
+
+	/*delete from file all the data read*/
+	auxbuf = malloc(myfd_table[fd].curr_size-n);
+	memcpy( myfd_table[fd].file, buf , myfd_table[fd].curr_size-n );
+	myfd_table[fd].curr_size -= n;
+
+}
 
 
 void
@@ -395,13 +456,23 @@ void getCurrentTTY_in_kernel(int * currtty ){
 	(*currtty) = currentTTY;
 }
 
+
 void mkfifo_in_kernel(fifoStruct * param){
 	/*TODO*/
-	/* open file
-	 * create semathore
-	 * return fd
+	/* open 2 file
+	 * create 2 semathore
+	 * return param
 	 * */
+	int fd1, fd2;
+	fd1 = create_file();
+	fd2 = create_file();
+	param->fd1 = fd1;/*create files / use param->path*/
+	param->fd2 = fd2;
+
 }
+
+
+
 
 void
 semget_in_kernel(semItem * param){
@@ -416,16 +487,23 @@ semget_in_kernel(semItem * param){
 
 void
 up_in_kernel(int key){
+	/*if the process is blocked-> unblock*/
+	PROCESS * proc = GetProcessByPID(CurrentPID);
+	if (proc->state = BLOCKED){
+		awake_process(CurrentPID);
+	}
 	semaphoreTable[key].value++;
 }
 
 void
 down_in_kernel(int key){
 	if (semaphoreTable[key].value == 0){
-		/*TODO bloquear*/
+		block_process_in_kernel(CurrentPID);
 	}
 	semaphoreTable[key].value--;
 }
+
+
 
 
 void int_79(size_t call, size_t param){
