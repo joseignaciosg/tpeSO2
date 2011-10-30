@@ -371,7 +371,7 @@ iNode * search_directory(char * name, iNode * actual_node){
 	//name = "hola";
 	int i;
 	for(i=1;i<40;i++){
-		printf("\nmepasan:%s\tNAME:%s",name,dr[i].name);
+		//printf("\nmepasan:%s\tNAME:%s",name,dr[i].name);
 		if( strcmp(name,dr[i].name) == 1){
 			//printf("LLEGO\n");	
 			return fs_get_inode(dr[i].inode);
@@ -639,7 +639,7 @@ void cd(char * path){
 //DONE
 void makeDir(char * newName){
 
-	printf("Me pasan:%s\n",newName);
+	//printf("Me pasan:%s\n",newName);
 	/*printf("%d\n",superblock->root);
 	printf("%d\n",current);
 	printf("DataBlock:%d\n",superblock->root->data.direct_blocks[0]);*/
