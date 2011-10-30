@@ -889,7 +889,7 @@ int do_close(int fd){
 
 int search_for_inode( int inodenumber ){
 	int i;
-	for ( i=1; i<100;i++){
+	for ( i=3; i<100;i++){
 		if ( inodenumber == fd_table[i].inode ){
 			return fd_table[i].fd;
 		}
@@ -899,7 +899,7 @@ int search_for_inode( int inodenumber ){
 
 int search_for_fd(int fd){
 	int i;
-	for ( i=1; i<100;i++){
+	for ( i=3; i<100;i++){
 		if ( fd == fd_table[i].fd ){
 			return fd_table[i].inode;
 		}
@@ -909,7 +909,7 @@ int search_for_fd(int fd){
 
 int insert_fd(int inode_number){
 	int i;
-	for(i=1;i<100;i++){
+	for(i=3;i<100;i++){
 		if ( fd_table[i].fd == 0){
 			fd_table[i].fd = i;
 			fd_table[i].inode = inode_number;
