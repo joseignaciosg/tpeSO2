@@ -44,6 +44,7 @@
 #define NAMED_PIPE 5
 #define SOCKET 6 //NO USAR
 #define SYMBOLIC_LINK 7 //NO USAR
+#define LINK 8
 
 /* NEW DEFINES */
 
@@ -87,8 +88,9 @@ typedef struct{
 	int gid;
 	int mode;
 	int size;
+	int link;
 	dataStream data;
-	char relleno[56];
+	char relleno[52];
 }iNode;
 
 typedef struct fsNode{
@@ -214,6 +216,7 @@ int search_for_inode( int inodenumber );
 void touch(char * filename);
 void cat(char * filename);
 void link (char * path1, char * path2);
+void copy_link_inode(iNode * inode, iNode * reciever_inode);
 
 //word_t data[N / 32 + 1];
 BM * bitmap;
