@@ -570,7 +570,7 @@ iNode * parser_path(char * path, iNode * posible_inode){
 
 //DONE
 void cd(char * path){
-	
+
 	iNode * posible_inode = current;
 	posible_inode = parser_path(path, posible_inode);
 

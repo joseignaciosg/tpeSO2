@@ -38,8 +38,15 @@ extern int last100[100];
 extern int usrLoged;
 extern int usrName;
 extern int password;
+semItem * semaphoreTable;
+int semCount;
 
 
+void
+initializeSemaphoreTable(){
+	semaphoreTable = malloc(sizeof(semItem)*20); /*UP TO 20 semaphores*/
+	semCount = 0;
+}
 
 
 
@@ -94,6 +101,7 @@ kmain()
 	_Cli();
 	k_clear_screen();
 
+	initializeSemaphoreTable(); /*brand new!*/
 	initializeIDT();
 	unmaskPICS();
 	SetupScheduler();
@@ -357,6 +365,25 @@ void getCurrentTTY_in_kernel(int * currtty ){
 	(*currtty) = currentTTY;
 }
 
+void mkfifo_in_kernel(fifoStruct * param){
+	/*TODO*/
+	/* open file
+	 * create semathore
+	 * return fd
+	 * */
+}
+
+void
+semget_in_kernel(semItem * param){
+		if ( semCount == 20 ){
+			param->status = -1; /*failed*/
+			return;
+		}
+		param->key = semCount;
+		param->status = 0; /*ok*/
+		semaphoreTable[semCount++] = (*param);
+}
+
 
 void int_79(size_t call, size_t param){
 	switch(call){
@@ -383,6 +410,12 @@ void int_79(size_t call, size_t param){
 		break;
 	case CURR_TTY:
 		getCurrentTTY_in_kernel((int *)param); /*param == *currtty*/
+		break;
+	case MK_FIFO:
+		mkfifo_in_kernel((fifoStruct *)param);
+		break;
+	case SEM_GET:
+		semget_in_kernel((semItem *)param);
 		break;
 	}
 }

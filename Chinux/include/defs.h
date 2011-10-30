@@ -35,6 +35,8 @@
 #define TERM_SIZE 12
 #define TERM_CURPOS 13
 #define CURR_TTY 14
+#define MK_FIFO 15
+#define SEM_GET 16
 
 #define TRUE 1
 #define FALSE 0
@@ -164,8 +166,16 @@ typedef struct{
 	int isFront;
 }createProcessParam;
 
+typedef struct{
+	char * path;
+	size_t  fd;
+}fifoStruct;
 
-
+typedef struct{
+	int key;
+	int value;
+	int status;
+}semItem;
 
 
 #endif
