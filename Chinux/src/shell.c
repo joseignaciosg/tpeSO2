@@ -321,10 +321,13 @@ parseBuffer() {
 		rmDir(buffcopyparsed[1]);
 		isFront = 0;
 	}else if(strcmp("touch", buffcopyparsed[0])){
-		touch();
+		touch(buffcopyparsed[1]);
 		isFront = 0;
 	}else if(strcmp("cat ", buffcopyparsed[0])){
 		cat(buffcopyparsed[1]);
+		isFront = 0;
+	}else if(strcmp("ln ", buffcopyparsed[0])){
+		link(buffcopyparsed[1],buffcopyparsed[2]);
 		isFront = 0;
 	}else if(strcmp("cd ", buffcopyparsed[0])){
 		cd(buffcopyparsed[1]);/*rmDir*/

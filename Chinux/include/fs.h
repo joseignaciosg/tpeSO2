@@ -174,7 +174,7 @@ void ls(char *);
 /* VFS Functions Declartions */
 
 int creat (char *filename, int mode);
-int open (const char *filename, int flags, int mode);
+int open (char *filename, int flags, int mode);
 int read(int fd, char *buf, int n);
 int write(int fd, char *buf, int n);
 int close(int fd);
@@ -207,11 +207,13 @@ int do_creat(char * filename, int mode);
 int do_write(int fd, char * buf, int n);
 int do_read(int fd, char * buf, int n);
 int read_inode(iNode * inode, char * buf, int n);
-void write_inode(iNode * inode, char * buf, int n);
+int write_inode(iNode * inode, char * buf, int n);
 int do_open(char * filename, int flags, int mode);
 int search_for_inode( int inodenumber );
-void touch();
+void touch(char * filename);
 void cat(char * filename);
+void link (char * path1, char * path2);
+
 //word_t data[N / 32 + 1];
 BM * bitmap;
 IM * inodemap;

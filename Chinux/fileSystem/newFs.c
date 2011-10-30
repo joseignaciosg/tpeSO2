@@ -519,8 +519,8 @@ iNode * parser_path(char * path, iNode * posible_inode){
 			}else
 			{
 				status = CARACTER;
-				buffer[j++] = '.';
-				buffer[j++] = path[i];
+				//buffer[j++] = '.';
+				buffer[j++] = path[i++];
 				buffer[j];	//ALGUIEN QUE ME EXPLIQUE POR QUE SE EJECUTA ESTO!!			
 			}
 		}
@@ -671,7 +671,7 @@ void rmDir( char * path ){
 	{
 				
 		//BORRADO RECURSIVO.
-		//recursive_remove(posible_inode);
+		recursive_remove(posible_inode);
 		//PARCHE .COM		
 		int inode_number = posible_inode->iNode_number;
 		int init_block = current->data.direct_blocks[0];
@@ -747,7 +747,7 @@ void recursive_remove( iNode * current ){
 }*/
 
 
-void write_inode(iNode * inode, char * buf, int n){	
+int write_inode(iNode * inode, char * buf, int n){	
 		
 	int file_size = inode->size;
 	int newrequeried_blocks = inode->data.direct_blocks[1] + (int)(n/BLOCK_SIZE) + 1;
@@ -781,7 +781,7 @@ void write_inode(iNode * inode, char * buf, int n){
 		fs_insert_inode(inode);	
 	}
 	
-	return;	
+	return n;	
 }
 
 
@@ -842,23 +842,29 @@ int do_open(char * filename, int flags, int mode){
 int do_write(int fd, char * buf, int n){
 	
 	int inode_number = search_for_fd(fd);//buscar en fd el inodo
+	if ( inode_number == -1){
+		return -1;
+	}
 	iNode * inode =	fs_get_inode(inode_number);
-	write_inode(inode, buf,n);
+	return write_inode(inode, buf,n);
 	//printf("buffer:%s\n",buf);
 	
 }
 
 int do_read(int fd, char * buf, int n){
 
-	
-	int inode_number = search_for_fd(fd);//buscar en fd el inodo
+	int inode_number,quant;
+	inode_number = search_for_fd(fd);//buscar en fd el inodo
+	if ( inode_number == -1){
+		return -1;
+	}
 	iNode * inode =	fs_get_inode(inode_number);
-	if( n == -1 ){
+	if( n == -1 ){ //para leer todo el archivo.
 		n = inode->size;	
 	}
-	int a = read_inode(inode, buf,n);
+	quant = read_inode(inode, buf,n);
 	//printf("buf:%s\nreads:%d\n",buf,a);
-	return a;
+	return quant;
 }
 
 int do_close(int fd){
@@ -939,7 +945,7 @@ int creat (char *filename, int mode){
 }
 
 
-int open (const char *filename, int flags, int mode){
+int open (char *filename, int flags, int mode){
 	do_open(filename,flags,mode);
 }
 
@@ -955,9 +961,9 @@ int close(int fd){
 	do_close(fd);
 }
 
-void touch(){
+void touch( char * filename ){
 	printf("\nEJECUTO");
-	int fd = creat("hola.txt",888);
+	int fd = creat(filename,888);
 	char * buffer = "HolaHolaHolaHolax";
 	char * read_buffer = (char *)calloc(str_len(buffer),1);
 	write(fd,buffer,str_len(buffer));
@@ -976,4 +982,8 @@ void cat( char * filename ){
 	char * buffer = malloc(14);	
 	read(fd,buffer,-1);
 	printf("%s\n",buffer);
+}
+
+void link (char * path1, char * path2){
+	return;
 }
