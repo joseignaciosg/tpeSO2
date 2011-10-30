@@ -99,3 +99,12 @@ void down(int key){
 void mkDir(char * newName){
 	_int_79_caller(MK_DIR,newName);
 }
+
+void ls(char * path){
+	_int_79_caller(LS_COM,path);
+}
+
+void rm( char * path ){
+	_int_79_caller(RM_COM,path);
+}
+

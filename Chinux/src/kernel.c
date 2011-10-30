@@ -570,7 +570,12 @@ void int_79(size_t call, size_t param){
 	case MK_DIR:
 		makeDir((char *)param);/*param == nameDIR*/
 		break;
-
+	case LS_COM:
+		ls_in_kernel((char *)param);/*param == path*/
+		break;
+	case RM_COM:
+		rmDir((char *)param);/*param == path*/
+		break;
 	}
 }
 

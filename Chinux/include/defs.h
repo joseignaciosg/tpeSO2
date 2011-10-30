@@ -40,6 +40,8 @@
 #define SEM_UP 17
 #define SEM_DOWN 18
 #define MK_DIR 19
+#define LS_COM 20
+#define RM_COM 21
 
 #define TRUE 1
 #define FALSE 0
