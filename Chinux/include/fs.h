@@ -164,7 +164,7 @@ void init_inodemap();
 void init_filesystem( char * filesystem_name, masterBootRecord * mbr);
 void load_filesystem();
 
-void recursive_remove( iNode * current );
+int recursive_remove( iNode * current );
 int is_base_case( iNode * current );
 
 iNode * search_directory( char * name, iNode * node);
@@ -206,9 +206,9 @@ int fs_insert_inode(iNode * node);
 void init_root();
 void insert_directory( char * name, iNode * current );
 void insert_directory_entry(iNode * newDirectory, iNode * current, char * name);
-
+void insert_fifo_entry(iNode * newFile, iNode * current, char * name);
 void substr(char dest[], char src[], int offset, int len);
-
+void create_n_bytes( char * name, int size );
 /* READ AND WRITE */
 
 int do_creat(char * filename, int mode);
@@ -222,6 +222,8 @@ void touch(char * filename);
 void cat(char * filename);
 void link (char * path1, char * path2);
 void copy_link_inode(iNode * inode, iNode * reciever_inode);
+
+int getidentifier(int filedescriptor);
 
 //word_t data[N / 32 + 1];
 BM * bitmap;
