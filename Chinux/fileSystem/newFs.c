@@ -868,7 +868,7 @@ int do_creat(char * filename, int mode){
 int do_open(char * filename, int flags, int mode){
 	
 	iNode * posible_file = search_directory(filename, current);
-	printf("size:%d\n",posible_file->size);
+	//printf("size:%d\n",posible_file->size);
 	int fd;	
 	if ( posible_file != NULL)
 	{	
