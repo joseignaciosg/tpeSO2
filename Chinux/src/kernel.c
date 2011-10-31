@@ -704,19 +704,19 @@ void createusr(char * name, char * password, char * group)
 	fd = do_open("usersfile", 777, 777);
 	usr = malloc(sizeof(user) * 100);
 	do_read(fd, (char *)usr, sizeof(user) * 100);
+	length = str_len(name);
+	name[length - 1] = 0;
 	for(i = 0; i < 100 && usr[i].usrID; i++)
 		if(strcmp(usr[i].name, name))
 		{
-			printf("Error: User already exists.\n");
+			printf("\nError: User already exists.");
 			return ;
 		}
 	if(i == 100)
 	{
-		printf("Error: Too many users created.\n");
+		printf("\nError: Too many users created.");
 		return ;
 	}
-	length = str_len(name);
-	name[length - 1] = 0;
 	memcpy(usr[i].name, name, length - 1);
 	length = str_len(password);
 	password[length - 1] = 0;
