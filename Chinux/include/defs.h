@@ -52,6 +52,7 @@
 #define LINK_COM 24
 #define CD_COM 25
 #define CREAT_COM 26
+#define RM_FIFO 27
 
 
 #define TRUE 1
@@ -189,7 +190,7 @@ typedef struct{
 }createProcessParam;
 
 typedef struct{
-	char * path;/*path where is fifo is supposed to be created*/
+	char * name;/*TODO test*/
 	size_t fd1;/*fifo«s file descriptor 1*/
 	size_t fd2;/*fifo«s file descriptor 2*/
 }fifoStruct;

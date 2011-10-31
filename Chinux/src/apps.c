@@ -107,7 +107,7 @@ void top(int argc, char * argv[])
 void fifo_writer_test(int argc, char * argv[]){
 	int * fd = (int *)malloc(2*sizeof(int));
 	char * path = "hello";
-	mkfifo( path, fd);
+	mkfifo(fd);
 	CreateProcessAt("fifo_reader", fifo_reader_test,1, (int)fd, 0, 0x400, 2, 1);
 	/*printf("enviando\n");*/
 	sleep(4);
@@ -116,6 +116,8 @@ void fifo_writer_test(int argc, char * argv[]){
 	write_fifo(fd[0],"tetita",6);
 	sleep(3);
 	write_fifo(fd[0],"tetota",6);
+
+	rmfifo(fd);
 
 	_Sti();
 

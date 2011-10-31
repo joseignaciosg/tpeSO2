@@ -57,15 +57,20 @@ initializeSemaphoreTable(){
 }
 
 /*for testing fifos*/
-int create_file(){
+int create_fifo(char * name){
 	myfd_table[fileCount].fd = fileCount;/*cabeza*/
-	iNode * node = insert_fifo("my_fifo",0,NULL);
+	char * aux = malloc(5);
+	strcopy(aux,(char *)myfd_table[fileCount].fd,1);
+	/*strcat(aux,"fifo");
+	printf("mkfifo_in_kernel: %s\n", aux);
+	iNode * node = insert_fifo(aux,0,NULL);*/
+	iNode * node = insert_fifo(name,0,NULL);
 	/*myfd_table[fileCount].file = malloc(sizeof(char)*MAX_FIZE_SIZE);*/
 	myfd_table[fileCount].file = (char *)node->data.direct_blocks[0];
 	myfd_table[fileCount].curr_size = node->data.direct_blocks[1];
-	/*myfd_table[fileCount].curr_size=0;*/
+	/*myfd_table[fileCount].curr_size=0;
 	printf("%d\n",myfd_table[fileCount].file );
-	printf("%d\n",node->data.direct_blocks[1]);
+	printf("%d\n",node->data.direct_blocks[1]);*/
 	semItem * sem = malloc(sizeof(semItem));
 	sem->value = 0;
 	semget_in_kernel(sem);
@@ -488,11 +493,26 @@ void mkfifo_in_kernel(fifoStruct * param){
 	 * return param
 	 * */
 	int fd1, fd2;
-	fd1 = create_file();
-	fd2 = create_file();
+
+	fd1 = create_fifo("fifoa");
+	fd2 = create_fifo("fifob");
 	param->fd1 = fd1;/*create files / use param->path*/
 	param->fd2 = fd2;
+}
 
+void rmfifo_in_kernel(fifoStruct * param){
+	char * aux1 = malloc(5);
+	char * aux2 = malloc(5);
+	/*strcopy(aux1,(char *)param->fd1,1);
+	strcat(aux1,"fifo");
+	strcopy(aux2,(char *)param->fd2,1);
+	strcat(aux2,"fifo");
+	printf("%s\n",aux1);
+	printf("%s\n",aux2);*/
+	/*rmDir(aux1);
+	rmDir(aux2);*/
+	rmDir("fifoa");
+	rmDir("fifob");
 }
 
 
@@ -591,6 +611,9 @@ void int_79(size_t call, size_t param){
 		break;
 	case CREAT_COM:
 		creat_in_kernel((creat_param *)param);
+		break;
+	case RM_FIFO:
+		rmfifo_in_kernel((fifoStruct *)param);
 		break;
 	}
 
