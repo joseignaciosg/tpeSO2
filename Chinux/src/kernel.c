@@ -57,7 +57,7 @@ initializeSemaphoreTable(){
 /*for testing fifos*/
 int create_file(){
 	myfd_table[fileCount].fd = fileCount;/*cabeza*/
-	iNode * node = insert_fifo("my_fifo",MAX_FIZE_SIZE,NULL);
+	iNode * node = insert_fifo("my_fifo",0,NULL);
 	/*myfd_table[fileCount].file = malloc(sizeof(char)*MAX_FIZE_SIZE);*/
 	myfd_table[fileCount].file = (char *)node->data.direct_blocks[0];
 	myfd_table[fileCount].curr_size = node->data.direct_blocks[1];
