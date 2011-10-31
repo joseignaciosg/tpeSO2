@@ -1112,12 +1112,12 @@ void writefile_in_kernel( char * name, char * buffer ){
 	int fd;
 	int lenght = str_len(name);
 	name[lenght -1] = '\0';
-	printf("Buffer:%s\n",buffer);
+//	printf("Buffer:%s\n",buffer);
 	if ( (fd = do_open(name,1,777) ) == -1 ){
 		printf("File not exist");
 	}else{
 		write(fd,buffer,str_len(buffer));
-		printf("tam:%d\n",getsize(fd));
+		//printf("tam:%d\n",getsize(fd));
 	}
 	return;
 }
