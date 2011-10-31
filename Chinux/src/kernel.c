@@ -580,6 +580,9 @@ void int_79(size_t call, size_t param){
 	case CAT_COM:
 		cat_in_kernel((char *)param);/*param == filename*/
 		break;
+	case CD_COM:
+		cd_in_kernel((char *)param);/*param == path*/
+		break;
 	}
 }
 

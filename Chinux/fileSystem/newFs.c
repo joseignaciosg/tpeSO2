@@ -619,9 +619,8 @@ iNode * parser_path(char * path, iNode * posible_inode){
 }
 
 //DONE
-void cd(char * path){
+void cd_in_kernel(char * path){
 
-	
 	iNode * posible_inode = current;
 	posible_inode = parser_path(path, posible_inode);
 
@@ -678,7 +677,7 @@ void makeDir(char * newName){
 
 
 //DONE!
-void ls(char * path){
+void ls_in_kernel(char * path){
 	
 	printf("\n");
 	print_directories(current);
@@ -1006,7 +1005,7 @@ int close(int fd){
 	do_close(fd);
 }
 
-void touch( char * filename ){
+void touch_in_kernel( char * filename ){
 	printf("\nEJECUTO");
 	int fd = creat(filename,888);
 	char * buffer = "HolaHolaHolaHolax";
@@ -1022,7 +1021,7 @@ void touch( char * filename ){
 	
 }
 
-void cat( char * filename ){
+void cat_in_kernel( char * filename ){
 	int fd = open(filename,2,2);
 	char * buffer = malloc(14);	
 	read(fd,buffer,-1);

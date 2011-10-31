@@ -116,5 +116,11 @@ void cat( char * filename ){
 	_int_79_caller(CAT_COM,filename);
 }
 
+void cd(char * path){
+	_int_79_caller(CD_COM,path);
+}
+
+
+
 
 

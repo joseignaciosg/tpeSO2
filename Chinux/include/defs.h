@@ -44,6 +44,9 @@
 #define RM_COM 21
 #define TOUCH_COM 22
 #define CAT_COM 23
+#define LINK_COM 24
+#define CD_COM 24
+
 
 #define TRUE 1
 #define FALSE 0
