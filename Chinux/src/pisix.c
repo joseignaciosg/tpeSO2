@@ -120,6 +120,13 @@ void cd(char * path){
 	_int_79_caller(CD_COM,path);
 }
 
+void link(char * path1, char * path2){
+	link_struct * param = malloc(sizeof(link_struct));
+	param->path1 = path1;
+	param->path2 = path2;
+	_int_79_caller(CD_COM,param);
+}
+
 
 
 

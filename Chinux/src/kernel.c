@@ -583,6 +583,9 @@ void int_79(size_t call, size_t param){
 	case CD_COM:
 		cd_in_kernel((char *)param);/*param == path*/
 		break;
+	case LINK_COM:
+		link_in_kernel((char *)param);/*param == path*/
+		break;
 	}
 }
 

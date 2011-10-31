@@ -1,5 +1,7 @@
 #include "../include/fs.h"
 #include "../include/kernel.h"
+#include "../include/defs.h"
+
 
 int write_disk(int ata, int sector, void * msg, int count, int offset){
 	
@@ -1031,8 +1033,9 @@ void cat_in_kernel( char * filename ){
 //RM directorio creo un subdir, me meto y para volver pincha..WTF
 //Que ande el Path absoluto...
 
-void link (char * path1, char * path2){
-
+void link_in_kernel(link_struct * param){
+	char * path1 = param->path1;
+	char * path2 = param->path2;
 	if ( strcmp("hola",path1) == 1){
 		printf("ENTRO\n");
 	}	

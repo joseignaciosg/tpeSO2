@@ -45,7 +45,7 @@
 #define TOUCH_COM 22
 #define CAT_COM 23
 #define LINK_COM 24
-#define CD_COM 24
+#define CD_COM 25
 
 
 #define TRUE 1
@@ -195,6 +195,12 @@ typedef struct{
 	int curr_size;
 	int sem_key;
 }my_fdItem;
+
+
+typedef struct{
+	char * path1;
+	char * path2;
+}link_struct;
 
 #endif
 

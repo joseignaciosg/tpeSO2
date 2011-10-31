@@ -29,3 +29,10 @@ void down(int key);
 void mkDir(char * newName);
 
 void touch( char * filename );
+
+void cat( char * filename );
+
+void cd(char * path);
+
+void link(char * path1, char * path2);
+
