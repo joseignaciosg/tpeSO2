@@ -45,41 +45,75 @@ int semCount;
 /*for testing fifos*/
 #define MAX_FIZE_SIZE 1000
 #define MAX_FIFO 100
-my_fdItem * myfd_table;
-int fileCount;
+my_fdItem * fifo_table;
+int fifoCount;
 
 void
 initializeSemaphoreTable(){
 	semaphoreTable = malloc(sizeof(semItem)*20); /* UP TO 20 semaphores */
 	semCount = 0;
-	myfd_table = malloc(sizeof(my_fdItem)*MAX_FIFO); /* UP TO MAX_FIFO tables */
-	fileCount = 0;
+	fifo_table = malloc(sizeof(my_fdItem)*MAX_FIFO); /* UP TO MAX_FIFO tables */
+	int i;
+	for ( i=0; i<MAX_FIFO; i++ ){
+		fifo_table[i].fd = -1;
+	}
+	fifoCount = 0;
+}
+
+int find_new_fifo_fd(){
+	if ( fifoCount == MAX_FIFO ){
+		return -1;
+	}
+	int i;
+	for ( i=0; i<MAX_FIFO; i++ ){
+		if (fifo_table[i].fd == -1){
+			return i;
+		}
+	}
+}
+
+int delete_fifo_fd(int fd){
+	if ( fifo_table[fd].fd ){
+		return -1;
+	}
+	fifo_table[fd].fd = -1;
+	fifo_table[fd].curr_size = 0;
+	fifo_table[fd].sem_key = -1;
+	fifoCount--;
+	return 0;
 }
 
 /*for testing fifos*/
 int create_fifo(char * name){
-	myfd_table[fileCount].fd = fileCount;/*cabeza*/
-	char * aux = malloc(5);
-	strcopy(aux,(char *)myfd_table[fileCount].fd,1);
-	/*strcat(aux,"fifo");
+	int currfd = find_new_fifo_fd();
+	printf("%d",currfd);
+	if (currfd == -1 ){
+		printf("No more fifos can be created.\n");
+		return -1;
+	}
+	fifo_table[currfd].fd = currfd;/*cabeza*/
+	/*char * aux = malloc(5);
+	strcopy(aux,(char *)fifo_table[currfd].fd,1);
+	strcat(aux,"fifo");
 	printf("mkfifo_in_kernel: %s\n", aux);
 	iNode * node = insert_fifo(aux,0,NULL);*/
 	iNode * node = insert_fifo(name,0,NULL);
-	/*myfd_table[fileCount].file = malloc(sizeof(char)*MAX_FIZE_SIZE);*/
-	myfd_table[fileCount].file = (char *)node->data.direct_blocks[0];
-	myfd_table[fileCount].curr_size = node->data.direct_blocks[1];
-	/*myfd_table[fileCount].curr_size=0;
-	printf("%d\n",myfd_table[fileCount].file );
+	/*myfd_table[fifoCount].file = malloc(sizeof(char)*MAX_FIZE_SIZE);*/
+	fifo_table[currfd].file = (char *)node->data.direct_blocks[0];
+	fifo_table[currfd].curr_size = node->data.direct_blocks[1];
+	/*myfd_table[fifoCount].curr_size=0;
+	printf("%d\n",myfd_table[fifoCount].file );
 	printf("%d\n",node->data.direct_blocks[1]);*/
 	semItem * sem = malloc(sizeof(semItem));
 	sem->value = 0;
 	semget_in_kernel(sem);
-	myfd_table[fileCount].sem_key = sem->key;
-	if (myfd_table[fileCount].sem_key == -1){
+	fifo_table[currfd].sem_key = sem->key;
+	if (fifo_table[currfd].sem_key == -1){
 		printf("Not enouth space for more semaphores\n");
 		return -1;
 	}
-	return myfd_table[fileCount++].fd;
+	fifoCount++;
+	return fifo_table[currfd].fd;
 }
 
 void write_fifo(int fd, char *buf, int n){
@@ -89,18 +123,18 @@ void write_fifo(int fd, char *buf, int n){
 	*/
 	/*improve!*/
 	int j;
-	if ( n > (MAX_FIZE_SIZE - myfd_table[fd].curr_size) ){
-		memcpy(myfd_table[fd].file,buf ,MAX_FIZE_SIZE - myfd_table[fd].curr_size);
-		for(j=0; j<MAX_FIZE_SIZE - myfd_table[fd].curr_size; j++){
-			up_in_kernel(myfd_table[fd].sem_key);
+	if ( n > (MAX_FIZE_SIZE - fifo_table[fd].curr_size) ){
+		memcpy(fifo_table[fd].file,buf ,MAX_FIZE_SIZE - fifo_table[fd].curr_size);
+		for(j=0; j<MAX_FIZE_SIZE - fifo_table[fd].curr_size; j++){
+			up_in_kernel(fifo_table[fd].sem_key);
 		}
-		myfd_table[fd].curr_size = MAX_FIZE_SIZE;
+		fifo_table[fd].curr_size = MAX_FIZE_SIZE;
 	}else{
-		memcpy(myfd_table[fd].file, buf ,n);
+		memcpy(fifo_table[fd].file, buf ,n);
 		for(j=0; j<n; j++){
-			up_in_kernel(myfd_table[fd].sem_key);
+			up_in_kernel(fifo_table[fd].sem_key);
 		}
-		myfd_table[fd].curr_size += n;
+		fifo_table[fd].curr_size += n;
 	}
 }
 
@@ -111,14 +145,14 @@ void read_fifo(int fd, char *buf, int n){
 		n = MAX_FIZE_SIZE;
 	}
 	for (j=0; j<n ; j++){
-		down_in_kernel(myfd_table[fd].sem_key);/*blocking or not*/
+		down_in_kernel(fifo_table[fd].sem_key);/*blocking or not*/
 	}
-	memcpy( buf, myfd_table[fd].file , n );
+	memcpy( buf, fifo_table[fd].file , n );
 
 	/*delete from file all the data read*/
-	auxbuf = malloc(myfd_table[fd].curr_size-n);
-	memcpy( myfd_table[fd].file, buf , myfd_table[fd].curr_size-n );
-	myfd_table[fd].curr_size -= n;
+	auxbuf = malloc(fifo_table[fd].curr_size-n);
+	memcpy( fifo_table[fd].file, buf , fifo_table[fd].curr_size-n );
+	fifo_table[fd].curr_size -= n;
 
 }
 
@@ -513,6 +547,10 @@ void rmfifo_in_kernel(fifoStruct * param){
 	rmDir(aux2);*/
 	rmDir("fifoa");
 	rmDir("fifob");
+	printf("%d",param->fd1);
+	printf("%d",param->fd2);
+	delete_fifo_fd(param->fd1);
+	delete_fifo_fd(param->fd2);
 }
 
 
