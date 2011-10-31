@@ -879,7 +879,12 @@ int do_open(char * filename, int flags, int mode){
 		}
 	}else
 	{
-		do_creat(filename,mode);		
+		if(flags == 0){
+			do_creat(filename,mode);
+		}else{
+			return -1;
+		}
+				
 		//TODO:Falta todo el tema de permisos y opciones para abrir.
 	}
 			
@@ -1023,9 +1028,19 @@ void touch_in_kernel( char * filename ){
 	
 }
 
+int getsize(int filedescriptor){
+
+	iNode * nodo = fs_get_inode(search_for_fd(filedescriptor));
+	return nodo->size;	
+
+}
 void cat_in_kernel( char * filename ){
-	int fd = open(filename,2,2);
-	char * buffer = malloc(14);	
+	int fd;
+	if ( ( fd = open(filename,1,2) ) == -1){
+		printf("File not exist\n");
+		return;	
+	}
+	char * buffer = malloc(getsize(fd));	
 	read(fd,buffer,-1);
 	printf("%s\n",buffer);
 }

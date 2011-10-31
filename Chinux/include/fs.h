@@ -182,7 +182,7 @@ int read(int fd, char *buf, int n);
 int write(int fd, char *buf, int n);
 int close(int fd);
 
-
+int getsize(int filedescriptor);
 int search_for_fd(int fd);
 int insert_fd(int inode);
 int delete_fd(int filedescriptor);
