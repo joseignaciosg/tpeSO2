@@ -747,7 +747,23 @@ void rmDir( char * path ){
 	{
 		printf("Wrong name or path\n");
 	} else if( posible_inode->identifier != DIRECTORY ){
-		printf("Its not a Directory\n");
+		//printf("Its not a Directory\n");	
+		int inode_number = posible_inode->iNode_number;
+		int init_block = current->data.direct_blocks[0];
+		directoryEntry * dr = (directoryEntry*)calloc(sizeof(directoryEntry),96);
+		read_disk(0,init_block,dr,BLOCK_SIZE*12,0);
+		for ( i = 2; i < 96; i++){
+			if ( dr[i].inode == inode_number){
+				char * empty_name = "\0";				
+				dr[i].type = 0;
+				dr[i].inode = 0;
+				dr[i].lenght = 0;
+				strcopy(dr[i].name,empty_name,1);				
+				break; 
+			}
+		}
+		write_disk(0,init_block,dr,BLOCK_SIZE*12,0);
+
 	}
 	else
 	{
@@ -765,7 +781,7 @@ void rmDir( char * path ){
 		read_disk(0,father_init_block,father_dr,BLOCK_SIZE*12,0);
 		
 		
-		int i;
+		
 		for ( i = 2; i < 96; i++){
 			if ( father_dr[i].inode == inode_number){
 				char * empty_name = "\0";				
