@@ -331,7 +331,13 @@ parseBuffer() {
 		cat(buffcopyparsed[1]);
 		isFront = 0;
 	}else if(strcmp("ln ", buffcopyparsed[0])){
-		link(buffcopyparsed[1],buffcopyparsed[2]);
+		links(buffcopyparsed[1],buffcopyparsed[2]);
+		isFront = 0;
+	}else if(strcmp("writefile ", buffcopyparsed[0])){
+		writefile_in_kernel(buffcopyparsed[1],buffcopyparsed[2]);
+		isFront = 0;
+	}else if(strcmp("bytefile ", buffcopyparsed[0])){
+		create_n_bytes(buffcopyparsed[1]);
 		isFront = 0;
 	}else if(strcmp("cd ", buffcopyparsed[0])){
 		cd(buffcopyparsed[1]);/*rmDir*/
