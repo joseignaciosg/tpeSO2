@@ -1172,16 +1172,25 @@ int getsize(int filedescriptor){
 
 }
 
+int getidentifier(int filedescriptor){
+	iNode * nodo = fs_get_inode(search_for_fd(filedescriptor));
+	return nodo->identifier;
+}
+
 void cat_in_kernel( char * filename ){
+	
 	int fd;
 	if ( ( fd = open(filename,1,2) ) == -1){
 		printf("File not exist\n");
-	return;
+		return;
 	}
-
-	char * buffer = malloc(getsize(fd));
-	read(fd,buffer,-1);
-	printf("\n%s",buffer);
+	if ( getidentifier(fd) != FILE ){
+		printf("Error: files only\n");
+	}else{
+		char * buffer = malloc(getsize(fd));
+		read(fd,buffer,-1);
+		printf("\n%s",buffer);
+	}
 }
 
 //RM directorio creo un subdir, me meto y para volver pincha..WTF

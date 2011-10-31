@@ -223,6 +223,8 @@ void cat(char * filename);
 void link (char * path1, char * path2);
 void copy_link_inode(iNode * inode, iNode * reciever_inode);
 
+int getidentifier(int filedescriptor);
+
 //word_t data[N / 32 + 1];
 BM * bitmap;
 IM * inodemap;
