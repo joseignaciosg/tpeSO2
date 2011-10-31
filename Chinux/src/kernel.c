@@ -15,6 +15,8 @@
 #include "../include/shell.h"
 #include "../include/utils.h"
 #include "../include/fs.h"
+#include "../include/stdio.h"
+#include "../include/pisix.h"
 
 
 DESCR_INT idt[0x90]; /* IDT 144 positions*/
@@ -72,6 +74,8 @@ int find_new_fifo_fd(){
 			return i;
 		}
 	}
+	
+	return -1;
 }
 
 int delete_fifo_fd(int fd){
@@ -532,6 +536,7 @@ int find_new_sem_key(){
 			return i;
 		}
 	}
+	return -1;
 }
 
 int delete_sem_key(int key){
@@ -581,9 +586,6 @@ void semrm_in_kernel(int key){
 		printf("Error deleting semaphore.\n");
 	}
 }
-
-
-
 
 
 void int_79(size_t call, size_t param){
@@ -763,7 +765,6 @@ void createusr(char * name, char * password, char * group)
 {
 	int i, fd, length;
 	user * usr;
-	groupID gID;
 	iNode * aux;
 	aux = current;
 	current = superblock->root;

@@ -12,6 +12,7 @@
 #include "../include/defs.h"
 #include "../include/utils.h"
 #include "../include/stdio.h"
+#include "../include/video.h"
 
 /***	System Includes		***/
 #include "stdarg.h"

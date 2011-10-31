@@ -20,8 +20,9 @@
 #include "../include/atadisk.h"
 #include "../include/apps.h"
 #include "../include/kernel.h"
+#include "../include/kasm.h"
+#include "../include/pisix.h"
 
-/*#include "../include/kernel.h"*/
 
 /***	Module Defines	***/
 #define STO_MAX  100
@@ -222,27 +223,6 @@ parseBuffer() {
 	scanf("%s", buffcopy);
 	
 	splitbuffer();
-
-	/*if(!usrLoged && usrName)
-	{
-		strcopy(usr.name, buffcopy, size);
-		clearBuffcopy();
-		clearTerminalBuffer(currentTTY);
-		return;
-	}
-
-	if(!usrLoged && password)
-	{
-		strcopy(usr.password, buffcopy, size);
-		clearBuffcopy();
-		if(strcmp(usr.name, admin.name) && strcmp(usr.password, admin.password))
-			usrLoged = 1;
-		else
-			printf("\nUser name or password incorrect. Please try again.");
-		clearTerminalBuffer(currentTTY);
-
-		return;
-	}*/
 
 	saveCommand();
 

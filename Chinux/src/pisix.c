@@ -78,6 +78,7 @@ int mkfifo(  int * fd )
 	_int_79_caller(MK_FIFO,&param);
 	fd[0] = param->fd1;
 	fd[1] = param->fd2;
+	return 0;
 }
 
 void rmfifo( int * fd ){
@@ -145,6 +146,7 @@ int creat(char * filename,int mode){
 	memcpy(param->filename,filename,str_len(filename));
 	param->mode = mode;
 	_int_79_caller(CREAT_COM,param);
+	return 0;
 }
 
 

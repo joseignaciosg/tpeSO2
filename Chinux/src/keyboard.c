@@ -12,6 +12,8 @@
 #include "../include/defs.h"
 #include "../include/stdio.h"
 #include "../include/utils.h"
+#include "../include/pisix.h"
+#include "../include/shell.h"
 
 
 char buffcopy[BUFFER_SIZE];
@@ -94,7 +96,7 @@ int addCharToBuff(char c) {
 
 void int_09() {
 	char c;
-	int i, aux;
+	int aux;
 	unsigned char new_scan_code = _inport(0x60);
 	static const unsigned char
 		shiftTable[][83] = { { 0/*Esc*/, '1', '2', '3', '4', '5', '6', '7',

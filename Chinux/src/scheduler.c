@@ -10,6 +10,8 @@
 
 #include "../include/defs.h"
 #include "../include/kernel.h"
+#include "../include/utils.h"
+#include "../include/stdio.h"
 
 int last100[100]={0};
 int counter100 = 0;
