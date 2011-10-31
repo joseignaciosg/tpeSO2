@@ -625,10 +625,13 @@ void logUser(void)
 	int i, fd, usrNotFound, j;
 	user * usr;
 	//cd("users");
+	current = superblock->root;
+	currentUsr.group = ADMIN;
+
 	fd = do_open("usersfile", 777, 777);
 	usr = malloc(sizeof(user) * 100);
 	do_read(fd, (char *)usr, sizeof(user) * 100);
-	
+
 	while(!usrLoged)
 	{
 		usrNotFound = 1;
@@ -701,22 +704,25 @@ void createusr(char * name, char * password, char * group)
 	int i, fd, length;
 	user * usr;
 	groupID gID;
+	iNode * aux;
+	aux = current;
+	current = superblock->root;
 	fd = do_open("usersfile", 777, 777);
 	usr = malloc(sizeof(user) * 100);
 	do_read(fd, (char *)usr, sizeof(user) * 100);
-	length = str_len(name);
-	name[length - 1] = 0;
 	for(i = 0; i < 100 && usr[i].usrID; i++)
 		if(strcmp(usr[i].name, name))
 		{
-			printf("\nError: User already exists.");
+			printf("Error: User already exists.\n");
 			return ;
 		}
 	if(i == 100)
 	{
-		printf("\nError: Too many users created.");
+		printf("Error: Too many users created.\n");
 		return ;
 	}
+	length = str_len(name);
+	name[length - 1] = 0;
 	memcpy(usr[i].name, name, length - 1);
 	length = str_len(password);
 	password[length - 1] = 0;
@@ -731,6 +737,8 @@ void createusr(char * name, char * password, char * group)
 	fd = do_creat("usersfile", 777);
 	write(fd, (void *)usr, sizeof(user) * 100);
 	do_close(fd);
+
+	current = aux;
 
 	return;	
 }
