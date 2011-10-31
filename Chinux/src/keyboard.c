@@ -3,6 +3,7 @@
  *  Keyboard.c
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
+ *  	Loreti, Nicolas
  *		ITBA 2011
  *
  ***********************************/
@@ -10,7 +11,9 @@
 /***	Project Includes	***/
 #include "../include/defs.h"
 #include "../include/stdio.h"
-#include "../include/kc.h"
+#include "../include/utils.h"
+#include "../include/pisix.h"
+#include "../include/shell.h"
 
 
 char buffcopy[BUFFER_SIZE];
@@ -28,7 +31,6 @@ unsigned down_arrow_state = FALSE;
 extern TTY terminals[4];
 extern int currentTTY;
 extern char * vidmem;
-extern int scan_test;
 extern int currentTTY;
 extern int password;
 extern int usrName;
@@ -37,7 +39,6 @@ extern int CurrentPID;
 extern int currentProcessTTY;
 extern int logPID;
 
-void memcpy(char* a, char* b, int len);
 
 void readKeyboard(char* buffer, size_t count) {
 	int k = 0;
@@ -95,7 +96,7 @@ int addCharToBuff(char c) {
 
 void int_09() {
 	char c;
-	int i, aux;
+	int aux;
 	unsigned char new_scan_code = _inport(0x60);
 	static const unsigned char
 		shiftTable[][83] = { { 0/*Esc*/, '1', '2', '3', '4', '5', '6', '7',
