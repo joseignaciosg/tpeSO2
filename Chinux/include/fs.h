@@ -45,6 +45,7 @@
 #define SOCKET 6 //NO USAR
 #define SYMBOLIC_LINK 7 //NO USAR
 #define LINK 8
+#define FIFO 9
 
 /* NEW DEFINES */
 
