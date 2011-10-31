@@ -164,7 +164,7 @@ void init_inodemap();
 void init_filesystem( char * filesystem_name, masterBootRecord * mbr);
 void load_filesystem();
 
-void recursive_remove( iNode * current );
+int recursive_remove( iNode * current );
 int is_base_case( iNode * current );
 
 iNode * search_directory( char * name, iNode * node);

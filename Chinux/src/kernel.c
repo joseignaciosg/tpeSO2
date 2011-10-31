@@ -724,10 +724,13 @@ void logUser(void)
 	int i, fd, usrNotFound, j;
 	user * usr;
 	//cd("users");
+	current = superblock->root;
+	currentUsr.group = ADMIN;
+
 	fd = do_open("usersfile", 777, 777);
 	usr = malloc(sizeof(user) * 100);
 	do_read(fd, (char *)usr, sizeof(user) * 100);
-	
+
 	while(!usrLoged)
 	{
 		usrNotFound = 1;
@@ -800,6 +803,9 @@ void createusr(char * name, char * password, char * group)
 	int i, fd, length;
 	user * usr;
 	groupID gID;
+	iNode * aux;
+	aux = current;
+	current = superblock->root;
 	fd = do_open("usersfile", 777, 777);
 	usr = malloc(sizeof(user) * 100);
 	do_read(fd, (char *)usr, sizeof(user) * 100);
@@ -830,6 +836,8 @@ void createusr(char * name, char * password, char * group)
 	fd = do_creat("usersfile", 777);
 	write(fd, (void *)usr, sizeof(user) * 100);
 	do_close(fd);
+
+	current = aux;
 
 	return;	
 }
