@@ -1,12 +1,43 @@
+/********************************** 
+*
+*  newFs.c
+*  	Galindo, Jose Ignacio
+*  	Homovc, Federico
+*  	Loreti, Nicolas
+*		ITBA 2011
+*
+***********************************/
+
 #include "../include/fs.h"
 #include "../include/kernel.h"
 
 int write_disk(int ata, int sector, void * msg, int count, int offset){
+	
 	return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
+	/*int i;
+	int cantsectors = (int)(count/512) + 1;
+	if ( cantsectors < 128 ){
+		return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
+	}else{
+		for ( i = sector; i < cantsectors; i+=128 ){
+			_disk_write(0x1f0,(char*)(msg),127,i+1);
+		}
+		return _disk_write(0x1f0,(char*)(msg),cantsectors-(i-128),i-128);
+	}*/
 }
 
 int read_disk(int ata,int sector, void * msg, int count, int lenght){
 	return _disk_read(0x1f0,(char*)msg,count/512,sector+1);
+	/*int i;
+	int cantsectors = (int)(count/512) + 1;
+	if ( cantsectors < 128 ){
+		return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
+	}else{
+		for ( i = sector; i < cantsectors; i+=128 ){
+			_disk_write(0x1f0,(char*)(msg),127,i+1);
+		}
+		return _disk_write(0x1f0,(char*)(msg),cantsectors-(i-128),i-128);
+	}*/
 }
 
 void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
@@ -14,12 +45,21 @@ void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 	/*mbr sector*/
 	int fd;
 	user * users = calloc(sizeof(user), 100);
-	strcopy(users[0].name, "admin");
-	strcopy(users[0].password,  "admin");
-	users[0].usrID = 0;
+	memcpy(users[0].name, "chinux", str_len("chinux"));
+	memcpy(users[0].password, "teta", str_len("teta"));
+	users[0].usrID = 1;
 	users[0].group = ADMIN;
 	mbr->existFS = 1;
-	write_disk(0, 0,mbr,BLOCK_SIZE,0);
+	/*int i;
+	char * buffer = malloc(5120);
+	char * read_buffer = malloc(5120);
+	for(i=0;i<5120;i++){
+		buffer[i] = '0';
+	}
+	write_disk(0,0,buffer,5120,0);
+	*/
+
+	write_disk(0, 0,mbr,BLOCK_SIZE,0);//BLOCK_SIZE
 	
 	/* superBlock sector */
 	superblock->name = "Chinux";
@@ -44,11 +84,11 @@ void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 	makeDir("users");
 	makeDir("etc");
 
-	cd("users");
-	fd = do_creat("users", 777);
-	write(fd, (char *)users, sizeof(user) * 100);
-	close(fd);
-	cd("..");
+	//cd("users");
+	fd = do_creat("usersfile", 777);
+	write(fd, (char *)users, sizeof(user));
+	//close(fd);
+	//cd("..");
 	
 	return;
 }
@@ -353,12 +393,12 @@ iNode * search_directory(char * name, iNode * actual_node){
 	directoryEntry * dr = (directoryEntry*)calloc(64*96,1);
 	read_disk(0,init_block,dr,(BLOCK_SIZE*12),0);
 	//printf("parcialName:%s\n",name);
-	name = "hola";
+	//name = "hola";
 	int i;
-	for(i=1;i<10;i++){
-		printf("\nmepasan:%s\tNAME:%s",name,dr[i].name);
+	for(i=1;i<40;i++){
+		//printf("\nmepasan:%s\tNAME:%s",name,dr[i].name);
 		if( strcmp(name,dr[i].name) == 1){
-			printf("LLEGO\n");	
+			//printf("LLEGO\n");	
 			return fs_get_inode(dr[i].inode);
 		}
 	}
@@ -491,7 +531,7 @@ iNode * parser_path(char * path, iNode * posible_inode){
 		if ( path[i] == '\0' )
 		{
 				path_parsing = END_PATH;
-				path_status = OK_STATUS;
+				/*path_status = OK_STATUS;
 				buffer[j] = '\0';
 			
 				if( ( temp_inode = search_directory(buffer, posible_inode) ) != NULL)
@@ -501,9 +541,9 @@ iNode * parser_path(char * path, iNode * posible_inode){
 				}else
 				{
 					path_status = WRONG_PATH;
-				}			
+				}	*/		
 		}
-		else if( status == BARRA )
+		if( status == BARRA )
 		{
 			if ( path[i] == '/' )
 			{
@@ -604,7 +644,7 @@ iNode * parser_path(char * path, iNode * posible_inode){
 }
 
 //DONE
-void cd(char * path){
+void cd_in_kernel(char * path){
 
 	iNode * posible_inode = current;
 	posible_inode = parser_path(path, posible_inode);
@@ -623,7 +663,7 @@ void cd(char * path){
 //DONE
 void makeDir(char * newName){
 
-	printf("Me pasan:%s\n",newName);
+	//printf("Me pasan:%s\n",newName);
 	/*printf("%d\n",superblock->root);
 	printf("%d\n",current);
 	printf("DataBlock:%d\n",superblock->root->data.direct_blocks[0]);*/
@@ -662,7 +702,7 @@ void makeDir(char * newName){
 
 
 //DONE!
-void ls(char * path){
+void ls_in_kernel(char * path){
 	
 	printf("\n");
 	print_directories(current);
@@ -904,7 +944,7 @@ int do_close(int fd){
 
 int search_for_inode( int inodenumber ){
 	int i;
-	for ( i=1; i<100;i++){
+	for ( i=3; i<100;i++){
 		if ( inodenumber == fd_table[i].inode ){
 			return fd_table[i].fd;
 		}
@@ -914,7 +954,7 @@ int search_for_inode( int inodenumber ){
 
 int search_for_fd(int fd){
 	int i;
-	for ( i=1; i<100;i++){
+	for ( i=3; i<100;i++){
 		if ( fd == fd_table[i].fd ){
 			return fd_table[i].inode;
 		}
@@ -924,7 +964,7 @@ int search_for_fd(int fd){
 
 int insert_fd(int inode_number){
 	int i;
-	for(i=1;i<100;i++){
+	for(i=3;i<100;i++){
 		if ( fd_table[i].fd == 0){
 			fd_table[i].fd = i;
 			fd_table[i].inode = inode_number;
@@ -990,7 +1030,7 @@ int close(int fd){
 	do_close(fd);
 }
 
-void touch( char * filename ){
+void touch_in_kernel( char * filename ){
 	printf("\nEJECUTO");
 	int fd = creat(filename,888);
 	char * buffer = "HolaHolaHolaHolax";
@@ -1006,7 +1046,7 @@ void touch( char * filename ){
 	
 }
 
-void cat( char * filename ){
+void cat_in_kernel( char * filename ){
 	int fd = open(filename,2,2);
 	char * buffer = malloc(14);	
 	read(fd,buffer,-1);

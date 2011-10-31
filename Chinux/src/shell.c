@@ -3,6 +3,7 @@
  *  shell.c
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
+ *  	Loreti, Nicolas
  *		ITBA 2011
  *
  ***********************************/
@@ -33,22 +34,15 @@ int sel_com = STO_MAX - 1;
 int usrLoged = 0;
 int usrName = 0;
 int password = 0;
-processCPU top100[100];
 int logoutPID = -1;
-
-extern user admin;
-user usr;
+processCPU top100[100];
 
 extern int last100[100];
 extern int currentProcessTTY;
 extern int currentTTY;
 extern int CurrentPID;
 extern int logPID;
-extern user admin;
-
-void logout(int argc, char * argv[]);
-
-
+extern user currentUsr;
 
 
 char
@@ -229,7 +223,7 @@ parseBuffer() {
 	
 	splitbuffer();
 
-	if(!usrLoged && usrName)
+	/*if(!usrLoged && usrName)
 	{
 		strcopy(usr.name, buffcopy, size);
 		clearBuffcopy();
@@ -248,7 +242,7 @@ parseBuffer() {
 		clearTerminalBuffer(currentTTY);
 
 		return;
-	}
+	}*/
 
 	saveCommand();
 
@@ -278,7 +272,7 @@ parseBuffer() {
 		pid = CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(strcmp("fifowriter", buffcopy)){
 			//putc('\n');
-		pid = CreateProcessAt("fifo_writer", (int(*)(int, char**))fifo_writer_test, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
+			pid = CreateProcessAt("fifo_writer", (int(*)(int, char**))fifo_writer_test, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(strcmp("prueba2", buffcopy)){
 		//putc('\n');
 		pid = CreateProcessAt("Prueba2", (int(*)(int, char**))prueba2, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
@@ -312,27 +306,23 @@ parseBuffer() {
 		kill(pid);
 		isFront = 0;
 	}else if(strcmp("createusr ", buffcopyparsed[0])){
-		if(admin.group == ADMIN)
+		if(currentUsr.group == ADMIN)
 		{
 			if( strcmp("admin", buffcopyparsed[3]) || strcmp("usr", buffcopyparsed[3]) )
-			{
 				createusr(buffcopyparsed[1], buffcopyparsed[2], buffcopyparsed[3]);
-				/*strcopy(usr.name, buffcopyparsed[1], str_len(buffcopyparsed[1]) );
-				strcopy(usr.password, buffcopyparsed[2], str_len(buffcopyparsed[2]) );
-				printf("name:%s password:%s\n", usr.name, usr.password);*/
-			} else
+			else
 				 printf("\nUser group must be 'admin' or 'usr'.");
 		} else
 				 printf("\nOnly admin users can create other users.");
 		isFront = 0;
 	}else if(strcmp("mkdir ", buffcopyparsed[0])){
-		makeDir(buffcopyparsed[1]);
+		mkDir(buffcopyparsed[1]);
 		isFront = 0;
-	}else if(strcmp("ls ", buffcopyparsed[0])){
+	}else if(strcmp("ls", buffcopyparsed[0])){
 		ls(buffcopyparsed[1]);
 		isFront = 0;
 	}else if(strcmp("rm ", buffcopyparsed[0])){
-		rmDir(buffcopyparsed[1]);
+		rm(buffcopyparsed[1]);
 		isFront = 0;
 	}else if(strcmp("touch ", buffcopyparsed[0])){
 		touch(buffcopyparsed[1]);

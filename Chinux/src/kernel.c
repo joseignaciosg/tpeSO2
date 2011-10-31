@@ -3,6 +3,7 @@
 *  kernel.c
 *  	Galindo, Jose Ignacio
 *  	Homovc, Federico
+*  	Loreti, Nicolas
 *		ITBA 2011
 *
 ***********************************/
@@ -28,8 +29,8 @@ int currentTTY = 0;
 int currentProcessTTY = 0;
 int logPID;
 TTY terminals[4];
-user admin;
-char loginBuffer[BUFFER_SIZE] = {0};
+int usrID = 1;
+user currentUsr;
 
 extern int timeslot;
 extern int logoutPID;
@@ -167,17 +168,38 @@ kmain()
 	unmaskPICS();
 	SetupScheduler();
 
+	/*int h;
+	char * buffer = calloc(512,512);
+	char * read = calloc(512,512);
+
+	for( h=0;h<(512*512);h++){
+			buffer[h] = '1';
+	}
+	buffer[h] = '\0';	
+	printf("%s",buffer);	
+	h = 0;
+	write_disk(0,h,buffer,(512*512),0);
+	printf("Escribio\n");
+	for(h=0;h<16024*16024;h++);	
+	read_disk(0,h,read,(512*512),0);
+	printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+printf("READ\n");
+	for(h=0;h<16024*16024;h++);		
+	printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+		
+	printf("%s",read);
+	//}*/
 	int h;
-	char * buffer = calloc(512,100);
-	for( h=0;h<100;h++){		
-	write_disk(0,h,buffer,BLOCK_SIZE,0);
+	char * buffer = calloc(512,1);
+	for(h=0;h<200;h++){
+		write_disk(0,h,buffer,BLOCK_SIZE,0);
 	}
 	fd_table = (filedescriptor *)calloc(100,1);
 	masterBootRecord * mbr = (masterBootRecord *)malloc(512);
 	superblock = (masterBlock*)malloc(512);		
 	bitmap = (BM*)calloc(BITMAP_SIZE,1);	
 	inodemap = (IM*)calloc(INODEMAP_SIZE,1);
-	
+	//printf("PASO\n");
 	
 	read_disk(0,0,mbr,BLOCK_SIZE,0);
 
@@ -199,9 +221,6 @@ kmain()
 	for(i = 0; i < 4; i++)
 		startTerminal(i);
 	logPID = CreateProcessAt("Login", (int(*)(int, char**))logUser, 0, 0, (char**)0, 0x400, 5, 1);
-	/*strcopy(admin.name, "chinux", str_len("chinux"));
-	strcopy(admin.password, "chinux", str_len("chinux"));
-	admin.group = ADMIN;*/
 	_Sti();
 
 	while(TRUE)
@@ -471,6 +490,9 @@ void mkfifo_in_kernel(fifoStruct * param){
 
 }
 
+
+
+
 void
 semget_in_kernel(semItem * param){
 		if ( semCount == 20 ){
@@ -538,10 +560,28 @@ void int_79(size_t call, size_t param){
 		semget_in_kernel((semItem *)param);
 		break;
 	case SEM_UP:
-		semget_in_kernel(param); /*param == key*/
+		up_in_kernel(param); /*param == key*/
 		break;
 	case SEM_DOWN:
-		semget_in_kernel(param);/*param == key*/
+		down_in_kernel(param);/*param == key*/
+		break;
+	case MK_DIR:
+		makeDir((char *)param);/*param == nameDIR*/
+		break;
+	case LS_COM:
+		ls_in_kernel((char *)param);/*param == path*/
+		break;
+	case RM_COM:
+		rmDir((char *)param);/*param == path*/
+		break;
+	case TOUCH_COM:
+		touch_in_kernel((char *)param);/*param == filename*/
+		break;
+	case CAT_COM:
+		cat_in_kernel((char *)param);/*param == filename*/
+		break;
+	case CD_COM:
+		cd_in_kernel((char *)param);/*param == path*/
 		break;
 	}
 }
@@ -571,37 +611,60 @@ void sleep(int secs)
 
 void logUser(void)
 {
-	int i, fd;
+	int i, fd, usrNotFound, j;
 	user * usr;
-	cd("users");
-	fd = do_open("users", 777, 777);
+	//cd("users");
+	fd = do_open("usersfile", 777, 777);
 	usr = malloc(sizeof(user) * 100);
 	do_read(fd, (char *)usr, sizeof(user) * 100);
-	printf("%s\n", usr[0].name);
+	
 	while(!usrLoged)
 	{
+		usrNotFound = 1;
 		printf("username: ");
 		moveCursor();
 		usrName = 1;
 		block_process(CurrentPID);
-		scanf("%s", loginBuffer);
-		//parseBuffer();
+		scanf("%s", buffcopy);
+		for(i = 0; i < 100 && usr[i].usrID != 0 && usrNotFound; i++)
+			if(strcmp(usr[i].name, buffcopy))
+			{
+				usrNotFound = 0;
+				//strcopy(currentUsr.name, buffcopy);
+			}
 		usrName = 0;
 		printf("\n");
-		printf("password: ");
-		moveCursor();
-		password = 1;
-		block_process(CurrentPID);
-		//parseBuffer();
-		password = 0;
-		printf("\n");
+		clearTerminalBuffer(currentTTY);
+		for(j = 0; j < BUFFER_SIZE; j++)
+			buffcopy[j] = 0;
+		if(!usrNotFound)
+		{
+			printf("password: ");
+			moveCursor();
+			password = 1;
+			block_process(CurrentPID);
+			scanf("%s", buffcopy);
+			if(strcmp(usr[i - 1].password, buffcopy))
+			{
+				usrLoged = 1;
+				//strcopy(currentUsr.password, buffcopy);
+			}
+			else
+				printf("\nIncorrect password. Please try again");
+			password = 0;
+			printf("\n");
+		} else
+			printf("User not found. Please try again\n");
+		clearTerminalBuffer(currentTTY);
+		for(j = 0; j < BUFFER_SIZE; j++)
+			buffcopy[j] = 0;
 	}
 	terminals[0].PID = CreateProcessAt("Shell0", (int(*)(int, char**))shell, 0, 0, (char**)0, 0x400, 2, 1);
 	terminals[1].PID = CreateProcessAt("Shell1", (int(*)(int, char**))shell, 1, 0, (char**)0, 0x400, 2, 1);
 	terminals[2].PID = CreateProcessAt("Shell2", (int(*)(int, char**))shell, 2, 0, (char**)0, 0x400, 2, 1);
 	terminals[3].PID = CreateProcessAt("Shell3", (int(*)(int, char**))shell, 3, 0, (char**)0, 0x400, 2, 1);
-	do_close(fd);
-	cd("..");
+	//do_close(fd);
+	//cd("..");
 	_Sti();
 	return;
 }
@@ -619,7 +682,34 @@ void logout(int argc, char * argv[])
 
 void createusr(char * name, char * password, char * group)
 {
+	int i, fd;
+	user * usr, * aux;
+	groupID gID;
+	fd = do_open("usersfile", 777, 777);
+	usr = malloc(sizeof(user) * 100);
+	do_read(fd, (char *)usr, sizeof(user) * 100);
+	for(i = 0; i < 100 && usr[i].usrID; i++)
+		if(strcmp(usr[i].name, name))
+		{
+			printf("User already exists.\n");
+			return ;
+		}
+	if(i == 100)
+	{
+		printf("Too many users created.\n");
+		return ;
+	}
+	memcpy(usr[i].name, name, str_len(name));
+	memcpy(usr[i].password, password, str_len(password));
+	usr[i].usrID = ++usrID;
+	if(strcmp(group, "admin"))
+		usr[i].group = ADMIN;
+	else
+		usr[i].group = USR;
+	aux = malloc(sizeof(user) * 100);
+	write(fd, (void *)usr, sizeof(user));
 	
+	//close(fd);
 
+	return;	
 }
-

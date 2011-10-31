@@ -57,7 +57,7 @@ void SaveESP (int ESP)
 	PROCESS* temp;
 	if (!FirstTime && !actualKilled)
 	{
-		temp = GetProcessByPID(CurrentPID);
+		temp = (PROCESS *)GetProcessByPID(CurrentPID);
 		temp->ESP = ESP;
 		if(temp->state == RUNNING)
 			temp->state = READY;

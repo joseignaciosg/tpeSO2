@@ -72,7 +72,9 @@ void int_80(size_t call, size_t fd, char *buffer, size_t count) {
 	case WRITE:
 		if (fd == STDOUT) {
 			writeScreen(buffer, count);
-		}
+		}/*else{
+			write(fd, buffer, count);
+		}*/
 		break;
 	case ERASE:
 		if (fd == STDOUT) {
@@ -98,6 +100,8 @@ __write(size_t call, size_t fd, void* buffer, size_t count) {
 	case WRITE:
 		if (fd == STDOUT){
 			_int_80_caller(WRITE, STDOUT, buffer, count);
+		}else{
+			_int_80_caller(WRITE, fd, buffer, count);
 		}
 		break;
 	case ERASE:
@@ -106,7 +110,6 @@ __write(size_t call, size_t fd, void* buffer, size_t count) {
 		}
 		break;
 	}
-
 	return count;
 }
 

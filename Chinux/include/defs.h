@@ -1,7 +1,12 @@
-/***************************************************
- Defs.h
-
- ****************************************************/
+/********************************** 
+*
+*  defs.h
+*  	Galindo, Jose Ignacio
+*  	Homovc, Federico
+*  	Loreti, Nicolas
+*		ITBA 2011
+*
+***********************************/
 
 #ifndef _defs_
 #define _defs_
@@ -39,6 +44,14 @@
 #define SEM_GET 16
 #define SEM_UP 17
 #define SEM_DOWN 18
+#define MK_DIR 19
+#define LS_COM 20
+#define RM_COM 21
+#define TOUCH_COM 22
+#define CAT_COM 23
+#define LINK_COM 24
+#define CD_COM 24
+
 
 #define TRUE 1
 #define FALSE 0
@@ -48,6 +61,7 @@ typedef enum state process_state;
 
 enum  groups{ ADMIN = 0, USR};
 typedef enum groups groupID;
+
 
 typedef int size_t;
 typedef short int ssize_t;
