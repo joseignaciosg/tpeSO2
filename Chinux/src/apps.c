@@ -106,16 +106,18 @@ void top(int argc, char * argv[])
 
 void fifo_writer_test(int argc, char * argv[]){
 	int * fd = (int *)malloc(2*sizeof(int));
-	char * path = "hello";
+	char * buff = (char *)malloc(9);
 	mkfifo(fd);
 	CreateProcessAt("fifo_reader", fifo_reader_test,1, (int)fd, 0, 0x400, 2, 1);
 	/*printf("enviando\n");*/
-	sleep(4);
-	write_fifo(fd[0],"teta",6);
 	sleep(3);
-	write_fifo(fd[0],"tetita",6);
+	write_fifo(fd[0],"hello   ",8);
 	sleep(3);
-	write_fifo(fd[0],"tetota",6);
+	write_fifo(fd[0],"how are ",8);
+	sleep(3);
+	write_fifo(fd[0],"you?    ",8);
+	read_fifo(fd[1],buff,9);
+	printf("fifo_writer receives: %s\n", buff);
 
 	rmfifo(fd);
 
@@ -125,13 +127,16 @@ void fifo_writer_test(int argc, char * argv[]){
 
 void fifo_reader_test(int argc, char * argv[]){
 	int * fd = (int *)argc;
-	char * buff = (char *)malloc(6);
+	char * buff = (char *)malloc(8);
 	int i=0;
 	while(i<3){
-		read_fifo(fd[0],buff, 6);
-		printf("peron tiene una %s\n",buff);
+		read_fifo(fd[0],buff, 8);
+		printf("fifo_reader receives: %s\n",buff);
 		i++;
 	}
+	write_fifo(fd[1],"just fine",9);
+
+
 }
 
 
