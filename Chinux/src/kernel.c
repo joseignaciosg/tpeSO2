@@ -240,7 +240,7 @@ printf("READ\n");
 	//}*/
 	int h;
 	char * buffer = calloc(512,1);
-	for(h=0;h<200;h++){
+	for(h=0;h<2000;h++){
 		write_disk(0,h,buffer,BLOCK_SIZE,0);
 	}
 	fd_table = (filedescriptor *)calloc(100,1);
