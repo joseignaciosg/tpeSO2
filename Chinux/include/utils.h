@@ -3,6 +3,7 @@
  *  utils.h
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
+ *	Loreti, Nicolas
  *		ITBA 2011
  *
  ***********************************/
@@ -57,5 +58,7 @@ int ltoa(unsigned long int n);
  * Converts a double to string
  *********************************************************************/
 int ftoa(double n);
+
+void memcpy(char* a, char* b, int len);
 
 #endif

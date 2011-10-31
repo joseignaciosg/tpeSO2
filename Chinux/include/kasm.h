@@ -1,7 +1,12 @@
-/*********************************************
-kasm.h
-
-************************************************/
+/********************************** 
+*
+*  kasm.h
+*  	Galindo, Jose Ignacio
+*  	Homovc, Federico
+*  	Loreti, Nicolas
+*		ITBA 2011
+*
+***********************************/
 
 #include "defs.h"
 
@@ -27,4 +32,10 @@ void		_int_80_hand();      /* Basic IO Interrupt */
 void		_int_79_hand();      /*  Interrupt for Kill and Block */
 
 void		_debug (void);
+
+void		_yield();
+
+void		_export();
+
+void		_inport();
 

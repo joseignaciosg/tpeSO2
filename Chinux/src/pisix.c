@@ -3,6 +3,7 @@
 *  pisix.c implementation of pseudo posix interfaceº
 *  	Galindo, Jose Ignacio
 *  	Homovc, Federico
+ *  	Loreti, Nicolas
 *		ITBA 2011
 *
 ***********************************/
@@ -13,14 +14,11 @@
 #include "../include/kernel.h"
 #include "../include/shell.h"
 #include "../include/utils.h"
-#include "../include/process.h"
 #include "../include/defs.h"
 #include "../include/pisix.h"
 
 
 extern int nextPID;
-
-
 
 
 void block_process(int pid){
@@ -80,6 +78,7 @@ int mkfifo(  int * fd )
 	_int_79_caller(MK_FIFO,&param);
 	fd[0] = param->fd1;
 	fd[1] = param->fd2;
+	return 0;
 }
 
 void rmfifo( int * fd ){
@@ -147,6 +146,7 @@ int creat(char * filename,int mode){
 	memcpy(param->filename,filename,str_len(filename));
 	param->mode = mode;
 	_int_79_caller(CREAT_COM,param);
+	return 0;
 }
 
 

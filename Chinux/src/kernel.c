@@ -14,23 +14,28 @@
 #include "../include/kernel.h"
 #include "../include/shell.h"
 #include "../include/utils.h"
-#include "../include/process.h"
 #include "../include/fs.h"
+#include "../include/stdio.h"
+#include "../include/pisix.h"
 
 
 DESCR_INT idt[0x90]; /* IDT 144 positions*/
 IDTR idtr;			 /* IDTR */
 
-PROCESS idle;
-processList ready;
 int nextPID = 1;
 int CurrentPID = 0;
 int currentTTY = 0;
 int currentProcessTTY = 0;
 int logPID;
-TTY terminals[4];
 int usrID = 1;
+int semCount;
+int fifoCount;
+PROCESS idle;
+processList ready;
+TTY terminals[4];
 user currentUsr;
+semItem * semaphoreTable;
+my_fdItem * fifo_table;
 
 extern int timeslot;
 extern int logoutPID;
@@ -39,25 +44,20 @@ extern int last100[100];
 extern int usrLoged;
 extern int usrName;
 extern int password;
-semItem * semaphoreTable;
-int semCount;
 
 /*for testing fifos*/
 #define MAX_FIZE_SIZE 1000
 #define MAX_FIFO 100
-my_fdItem * fifo_table;
-int fifoCount;
 
 void
 initializeSemaphoreTable(){
 	semaphoreTable = malloc(sizeof(semItem)*20); /* UP TO 20 semaphores */
 	fifo_table = malloc(sizeof(my_fdItem)*MAX_FIFO); /* UP TO MAX_FIFO tables */
-	int i;
+	int i, j;
 	for ( i=0; i<MAX_FIFO; i++ ){
 		fifo_table[i].fd = -1;
 	}
 	fifoCount = 0;
-	int j;
 	for ( j=0; j<20; j++ ){
 		semaphoreTable[j].key = -1;
 	}
@@ -65,15 +65,17 @@ initializeSemaphoreTable(){
 }
 
 int find_new_fifo_fd(){
+	int i;
 	if ( fifoCount == MAX_FIFO ){
 		return -1;
 	}
-	int i;
 	for ( i=0; i<MAX_FIFO; i++ ){
 		if (fifo_table[i].fd == -1){
 			return i;
 		}
 	}
+	
+	return -1;
 }
 
 int delete_fifo_fd(int fd){
@@ -173,6 +175,8 @@ initializeIDT()
 	idtr.base += (dword)&idt;
 	idtr.limit = sizeof(idt) - 1;
 	_lidt (&idtr);
+
+	return;
 }
 
 
@@ -180,6 +184,8 @@ void
 unmaskPICS(){
 	_mascaraPIC1(0xFC);
    	_mascaraPIC2(0xFF);
+
+	return;
 }
 
 
@@ -208,39 +214,18 @@ Starting point of the whole OS
 int
 kmain()
 {
-	int i;
+	int i, h;
 	_Cli();
 	k_clear_screen();
 
-	initializeSemaphoreTable(); /*brand new!*/
+	initializeSemaphoreTable();
 	initializeIDT();
 	unmaskPICS();
 	SetupScheduler();
 
-	/*int h;
-	char * buffer = calloc(512,512);
-	char * read = calloc(512,512);
-
-	for( h=0;h<(512*512);h++){
-			buffer[h] = '1';
-	}
-	buffer[h] = '\0';	
-	printf("%s",buffer);	
-	h = 0;
-	write_disk(0,h,buffer,(512*512),0);
-	printf("Escribio\n");
-	for(h=0;h<16024*16024;h++);	
-	read_disk(0,h,read,(512*512),0);
-	printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-printf("READ\n");
-	for(h=0;h<16024*16024;h++);		
-	printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-		
-	printf("%s",read);
-	//}*/
-	int h;
 	char * buffer = calloc(512,1);
-	for(h=0;h<2000;h++){
+
+	for(h = 0; h < 200; h++){
 		write_disk(0,h,buffer,BLOCK_SIZE,0);
 	}
 	fd_table = (filedescriptor *)calloc(100,1);
@@ -248,7 +233,6 @@ printf("READ\n");
 	superblock = (masterBlock*)malloc(512);		
 	bitmap = (BM*)calloc(BITMAP_SIZE,1);	
 	inodemap = (IM*)calloc(INODEMAP_SIZE,1);
-	//printf("PASO\n");
 	
 	read_disk(0,0,mbr,BLOCK_SIZE,0);
 
@@ -257,14 +241,6 @@ printf("READ\n");
 	}else{
 		load_filesystem();
 	}
-	
-	/*printf("mbr:%d\n",mbr->existFS);
-	read_disk(0,1,superblock,BLOCK_SIZE,0);
-	printf("name:%s\nblock:%d\nfreeBlocks:%d\nusedBlocks:%d\n",superblock->name, superblock->blockSize, superblock->freeBlocks, superblock->usedBlocks);
-	printf("InodeSize:%d\n",sizeof(iNode));
-	printf("Directory:%d\n",sizeof(directoryEntry));//16 Directorios o archivos en bloques directos..*/	
-	//makeDir("Lala");
-	//makeDir("ASD");
 	
 	ready = NULL;
 	for(i = 0; i < 4; i++)
@@ -312,10 +288,9 @@ int CreateProcessAt_in_kernel(createProcessParam * param)
 	proc->sleep = 0;
 	proc->acum = param->priority + 1;
 	set_Process_ready(proc);
+
 	return proc->pid;
-
 }
-
 
 
 int LoadStackFrame(int(*process)(int,char**),int argc,char** argv, int bottom, void(*cleaner)())
@@ -356,14 +331,13 @@ void block_process_in_kernel(int pid)
 {
 	processNode * aux;
 
-	timeslot = 1;					/*"yield"*/
+	timeslot = 1;
 	if(ready == NULL)
 	{
 		_yield();
 		return;
 	}
 	
-	//printf("blocking process: %d\n", pid);
 	aux = ((processNode*)ready);
 	if(aux->process->pid == pid)
 	{
@@ -382,20 +356,17 @@ void block_process_in_kernel(int pid)
 	return;
 }
 
-/*awakes the process with the given pid*/
+
 void awake_process(int pid)
 {
 	PROCESS * proc;
 
 	proc = GetProcessByPID(pid);
 	if(proc->state == BLOCKED && !proc->waitingPid)
-	{
 		proc->state = READY;
-		//printf("awakening process: %d\n", pid);
-	}
+
 	return ;
 }
-
 
 
 int Idle(int argc, char* argv[])
@@ -415,7 +386,6 @@ void end_process(void)
 	_Cli();
 	actualKilled = 1;
 	proc = GetProcessByPID(CurrentPID);
-	//printf("ending process: %d\n", proc->pid);
 	if(!proc->foreground)
 		printf("[%d]\tDone\t%s\n", proc->pid, proc->name);
 	else{
@@ -461,7 +431,6 @@ void kill_in_kernel(int pid)
 	}
 	if(pid == CurrentPID)
 		actualKilled = 1;
-	//printf("killing %d\n", pid);
 	proc = GetProcessByPID(pid);
 	if(proc->foreground){
 		parent = GetProcessByPID(proc->parent);
@@ -559,15 +528,16 @@ void rmfifo_in_kernel(fifoStruct * param){
 }
 
 int find_new_sem_key(){
+	int i;
 	if ( semCount == 20 ){
 		return -1;
 	}
-	int i;
-	for ( i=0; i<20; i++ ){
+	for ( i = 0; i < 20; i++ ){
 		if (semaphoreTable[i].key == -1){
 			return i;
 		}
 	}
+	return -1;
 }
 
 int delete_sem_key(int key){
@@ -582,15 +552,15 @@ int delete_sem_key(int key){
 
 void
 semget_in_kernel(semItem * param){
-		if ( semCount == 20 ){
-			param->status = -1; /*failed*/
-			return;
-		}
-		param->key = find_new_sem_key();
-		param->status = 0; /*ok*/
-		param->blocked_proc_pid = -1; /*ok*/
-		semaphoreTable[param->key] = (*param);
-		semCount++;
+	if ( semCount == 20 ){
+		param->status = -1; /*failed*/
+		return;
+	}
+	param->key = find_new_sem_key();
+	param->status = 0; /*ok*/
+	param->blocked_proc_pid = -1; /*ok*/
+	semaphoreTable[param->key] = (*param);
+	semCount++;
 }
 
 void
@@ -617,9 +587,6 @@ void semrm_in_kernel(int key){
 		printf("Error deleting semaphore.\n");
 	}
 }
-
-
-
 
 
 void int_79(size_t call, size_t param){
@@ -692,8 +659,6 @@ void int_79(size_t call, size_t param){
 		break;
 	}
 
-
-
 }
 
 void startTerminal(int pos)
@@ -708,7 +673,8 @@ void startTerminal(int pos)
 	terminals[pos].buffer.actual_char = BUFFER_SIZE-1;
 	terminals[pos].buffer.first_char = 0;
 	terminals[pos].buffer.size = 0;
-	//terminals[pos].PID = pos + 1;
+
+	return;
 }
 
 void sleep(int secs)
@@ -723,7 +689,6 @@ void logUser(void)
 {
 	int i, fd, usrNotFound, j;
 	user * usr;
-	//cd("users");
 	current = superblock->root;
 	currentUsr.group = ADMIN;
 
@@ -782,7 +747,6 @@ void logUser(void)
 	terminals[2].PID = CreateProcessAt("Shell2", (int(*)(int, char**))shell, 2, 0, (char**)0, 0x400, 2, 1);
 	terminals[3].PID = CreateProcessAt("Shell3", (int(*)(int, char**))shell, 3, 0, (char**)0, 0x400, 2, 1);
 	do_close(fd);
-	//cd("..");
 	_Sti();
 	return;
 }
@@ -802,7 +766,6 @@ void createusr(char * name, char * password, char * group)
 {
 	int i, fd, length;
 	user * usr;
-	groupID gID;
 	iNode * aux;
 	aux = current;
 	current = superblock->root;

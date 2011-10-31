@@ -3,7 +3,7 @@
  *  stdio.h
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
- *		Reznik, Luciana
+ *	Loreti, Nicolas
  *		ITBA 2011
  *
  ***********************************/

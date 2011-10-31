@@ -1,8 +1,9 @@
 /**********************************
  *
- *  shell.c
+ *  apps.c
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
+ *	Loreti, Nicolas
  *		ITBA 2011
  *
  ***********************************/
@@ -15,10 +16,11 @@
 #include "../include/utils.h"
 #include "../include/keyboard.h"
 #include "../include/video.h"
-#include "../include/process.h"
 #include "../include/fs.h"
 #include "../include/atadisk.h"
 #include "../include/apps.h"
+#include "../include/kasm.h"
+#include "../include/pisix.h"
 
 /***	Module Defines	***/
 #define STO_MAX  100
@@ -49,11 +51,10 @@ void prueba2(int argc, char * argv[])
 
 void prueba(int argc, char * argv[])
 {
-	int i = 10000;
 	_Sti();
 	printf("prueba\n");
 	while(TRUE)
-		;//printf("prueba\n");
+		;
 	return;
 }
 
@@ -105,11 +106,10 @@ void top(int argc, char * argv[])
 }
 
 void fifo_writer_test(int argc, char * argv[]){
-	int * fd = (int *)malloc(2*sizeof(int));
+	int * fd = (int *)malloc(2 * sizeof(int));
 	char * buff = (char *)malloc(9);
 	mkfifo(fd);
-	CreateProcessAt("fifo_reader", fifo_reader_test,1, (int)fd, 0, 0x400, 2, 1);
-	/*printf("enviando\n");*/
+	CreateProcessAt("fifo_reader", (int(*)(int, char**))fifo_reader_test, 1, (int)fd, 0, 0x400, 2, 1);
 	sleep(3);
 	write_fifo(fd[0],"hello   ",8);
 	sleep(3);
@@ -135,9 +135,6 @@ void fifo_reader_test(int argc, char * argv[]){
 		i++;
 	}
 	write_fifo(fd[1],"just fine",9);
-
-
+	return;
 }
-
-
 

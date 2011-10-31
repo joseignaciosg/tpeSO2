@@ -3,7 +3,7 @@
 *  video.c
 *  	Galindo, Jose Ignacio
 *  	Homovc, Federico
-*	Reznik, Luciana
+*	Loreti, Nicolas
 *		ITBA 2011
 *
 ***********************************/
@@ -11,7 +11,6 @@
 /***	Project Includes	***/
 #include "../include/defs.h"
 #include "../include/video.h"
-#include "../include/kc.h"
 
 /*points to the videoboard */
 char * vidmem = (char *) 0xb8000;
@@ -140,7 +139,6 @@ enter()
 
 void 
 moveCursor(){
-	//_Cli();
 	if(currentProcessTTY == currentTTY)
 	{
 		_export(0x3D4, 0x0F);
@@ -148,7 +146,6 @@ moveCursor(){
 		_export(0x3D4, 0x0E);
 		_export(0x3D5, ((terminals[currentTTY].curpos/2)>>8) & 0xFF);
 	}
-	//_Sti();
 
 	return;
  }

@@ -1,25 +1,29 @@
 /********************************** 
 *
-*  scheduler.c
+*  scheduler2.c
 *  	Galindo, Jose Ignacio
 *  	Homovc, Federico
+*  	Loreti, Nicolas
 *		ITBA 2011
 *
 ***********************************/
 
 #include "../include/defs.h"
-#include "../include/kc.h"
+#include "../include/kernel.h"
+#include "../include/utils.h"
+#include "../include/stdio.h"
 
 int last100[100]={0};
-int counter100;
+int counter100 = 0;
 int FirstTime = 1;
-extern int CurrentPID;
-extern PROCESS idle;
-extern processList ready;
-
+int actualKilled = 0;
 int timeslot = TIMESLOT;
+
+extern int CurrentPID;
 extern int currentProcessTTY;
 extern int currentTTY;
+extern PROCESS idle;
+extern processList ready;
 
 void SaveESP (int);
 PROCESS * GetNextProcess (void);
@@ -30,7 +34,6 @@ int isTimeSlot(void);
 
 int isTimeSlot()
 {
-	//printf("timeslot:%d", timeslot);
 	processNode * node;
 	
 	node = ((processNode*)ready);
@@ -54,14 +57,14 @@ void SaveESP (int ESP)
 {
 	timeslot = TIMESLOT;
 	PROCESS* temp;
-	if (!FirstTime)
+	if (!FirstTime && !actualKilled)
 	{
-		temp = GetProcessByPID(CurrentPID);
+		temp = (PROCESS *)GetProcessByPID(CurrentPID);
 		temp->ESP = ESP;
 		if(temp->state == RUNNING)
 			temp->state = READY;
 	}
-	FirstTime = 0;
+	FirstTime = actualKilled = 0;
 	return;
 }
 
@@ -75,8 +78,6 @@ PROCESS * GetNextProcess(void)
 		currentProcessTTY = currentTTY;
 	else
 		currentProcessTTY = temp->tty;
-	//printf("PID: %d\n", CurrentPID);
-	//printf("process name: %s\n", temp->name);
 	last100[counter100] = CurrentPID;
 	counter100 = (counter100 + 1) % 100;
 	return temp;
@@ -95,8 +96,6 @@ PROCESS * GetNextTask()
 
 	while(aux != NULL)
 	{
-		/*if(aux->process->state == READY)
-		printf("%s pid:%d acum:%d priority:%d\n", aux->process->name, aux->process->pid, aux->process->acum, aux->process->priority);*/
 		if(aux->process->acum >= maxAcum && aux->process->state == READY)
 		{
 			if(aux->process->acum == maxAcum)
@@ -139,7 +138,8 @@ void SetupScheduler(void)
 	idleprocess = (void *)malloc(0x200);
 	idle.pid = 0;
 	idle.foreground = 0;
-	idle.priority = 0;
+	idle.priority = 4;
+	idle.name = (char*)malloc(8);
 	memcpy(idle.name, "Idle", str_len("Idle") + 1);
 	idle.state = READY;
 	idle.tty = 0;
@@ -147,7 +147,7 @@ void SetupScheduler(void)
 	idle.stacksize = 0x200;
 	idle.parent = -1;
 	idle.waitingPid = -1;
-	idle.ESP = LoadStackFrame(Idle,0,0,(int)(idleprocess+0x1FF), end_process);
+	idle.ESP = LoadStackFrame(Idle,0,0,(int)(idleprocess + 0x1FF), end_process);
 	
 	return;
 }
