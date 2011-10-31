@@ -525,9 +525,9 @@ iNode * insert_fifo( char * name, int size, iNode * current2 ){
 
 	//TODO: CRear el inodo de directorio con todas sus entradas.
 	iNode * newFifo = (iNode *)malloc(sizeof(iNode));
-	if( ( newFifo = search_directory(name, current) ) == NULL){
+	/*if( ( newFifo = search_directory(name, current) ) != NULL){
 		return NULL;
-	}		
+	}	*/
 	newFifo =  fs_creat_inode(FIFO,1,size,NULL);
 	fs_insert_inode(newFifo);
 
@@ -1150,9 +1150,7 @@ int close(int fd){
 }
 
 void touch_in_kernel( char * filename ){
-	printf("\nEJECUTO");
-	int fd = creat(filename,888);
-	//printf("caca\n");
+	int fd = do_creat(filename,888);
 	char * buffer = "HolaHolaHolaHolax";
 	char * read_buffer = (char *)calloc(str_len(buffer),1);
 	write(fd,buffer,str_len(buffer));
