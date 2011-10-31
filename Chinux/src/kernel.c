@@ -93,7 +93,7 @@ int delete_fifo_fd(int fd){
 /*for testing fifos*/
 int create_fifo(char * name){
 	int currfd = find_new_fifo_fd();
-	printf("%d",currfd);
+	/*printf("%d",currfd);*/
 	if (currfd == -1 ){
 		printf("No more fifos can be created.\n");
 		return -1;
@@ -416,7 +416,7 @@ void kill_in_kernel(int pid)
 
 	_Cli();
 	for (j=0; j<4 ; j++){
-		if( pid == terminals[j].PID ){
+		if( pid == terminals[j].PID && usrLoged ){
 			return;
 		}
 	}
@@ -738,9 +738,9 @@ void logUser(void)
 void logout(int argc, char * argv[])
 {
 	int i;
+	usrLoged = 0;
 	for(i = 0; i < 4; i++)
 		kill(terminals[i].PID);
-	usrLoged = 0;
 	logPID = CreateProcessAt("logUsr", (int(*)(int, char**))logUser, currentProcessTTY, 0, (char**)0, 0x400, 4, 1);
 	_Sti();
 }

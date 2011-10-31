@@ -34,7 +34,7 @@ void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 	int fd;
 	user * users = calloc(sizeof(user), 100);
 	memcpy(users[0].name, "chinux", str_len("chinux"));
-	memcpy(users[0].password, "teta", str_len("teta"));
+	memcpy(users[0].password, "chinux", str_len("chinux"));
 	users[0].usrID = 1;
 	users[0].group = ADMIN;
 	mbr->existFS = 1;
@@ -1169,9 +1169,9 @@ void link_in_kernel(link_struct * param){
 	char * path1 = param->path1;
 	char * path2 = param->path2;
 	
-	if ( strcmp("hola",path1) == 1){
+	/*if ( strcmp("hola",path1) == 1){
 		printf("ENTRO\n");
-	}	
+	}	*/
 	int path2_len, i, index_file_name,quant_chars;
 	char * directory_path;
 	char * name;
@@ -1262,12 +1262,12 @@ void links(char * path1, char * path2){
 		copy_link_inode(path1_inode, link_node);
 	}else{
 	
-		printf("ENTRO");
+		/*printf("ENTRO");*/
 		iNode * path2_inode = current;
 		iNode * link_node = insert_file(path2,2,path2_inode);
 		
 		copy_link_inode(path1_inode, link_node);
-		printf("ID:%d\n",link_node->identifier);
+		/*printf("ID:%d\n",link_node->identifier);*/
 		fs_insert_inode(link_node);
 	}
 	
