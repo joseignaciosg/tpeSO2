@@ -90,7 +90,7 @@ void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 	init_root();
 	write_disk(0,1,superblock,BLOCK_SIZE,0);
 	current = superblock->root;
-
+	
 	makeDir("users");
 	makeDir("etc");
 
@@ -99,9 +99,34 @@ void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 	write(fd, (char *)users, sizeof(user) * 100);
 	close(fd);
 	//cd("..");
-	
+
+	create_n_bytes("diezmega", 5242880*2);
 	return;
 }
+
+void create_n_bytes( char * name , int size){
+	
+	char * buffer = malloc(size);
+	int i;
+	for( i = 0; i < size; i ++){
+		buffer[i] = '2';
+	}	
+	int fd = do_creat(name,888);
+	
+	write(fd,buffer,str_len(buffer));
+	printf("Se escrbieron:%d\n",getsize(fd));
+
+	return;
+	/*char * read_buffer = (char *)calloc(str_len(buffer),1);
+	read(fd,read_buffer,str_len(buffer));
+	char * buffer2 = " segunda";
+	char * read_buffer2 = malloc(str_len(buffer) + str_len(buffer2));
+	write(fd,buffer2,str_len(buffer) + str_len(buffer2));
+	read(fd,read_buffer2,str_len(buffer)+str_len(buffer2));
+	
+	printf("%s\n",read_buffer2);*/
+}
+
 
 void load_filesystem(){
 	read_disk(0,SUPERBLOCKSECTOR,superblock,BLOCK_SIZE,0);
@@ -119,7 +144,7 @@ void init_bitmap(){
 		set_bit(i,BITMAP);
 	}
 	
-	write_disk(0,2,bitmap->data,BITMAP_SIZE,0);
+	write_disk(0,BITMAPSECTOR,bitmap->data,BITMAP_SIZE,0);
 	return;
 }
 
@@ -419,7 +444,7 @@ iNode * search_directory(char * name, iNode * actual_node){
 	//printf("parcialName:%s\n",name);
 	//name = "hola";
 	int i;
-	for(i=1;i<40;i++){
+	for(i=1;i<96;i++){
 		//printf("\nmepasan:%s\tNAME:%s",name,dr[i].name);
 		if( strcmp(name,dr[i].name) == 1){
 			//printf("LLEGO\n");	
@@ -483,6 +508,9 @@ iNode * insert_file( char * name, int mode, iNode * current ){
 
 	//TODO: CRear el inodo de directorio con todas sus entradas.
 	iNode * newFile = (iNode *)malloc(sizeof(iNode));
+	if( ( newFile = search_directory(name, current) ) == NULL){
+		return NULL;
+	}	
 	newFile =  fs_creat_inode(FILE,mode,0,current);
 	fs_insert_inode(newFile);
 
@@ -493,18 +521,41 @@ iNode * insert_file( char * name, int mode, iNode * current ){
 	//TODO: No chequea que no alla repetidos.
 }
 
-iNode * insert_fifo( char * name, int size, iNode * current ){
+iNode * insert_fifo( char * name, int size, iNode * current2 ){
 
 	//TODO: CRear el inodo de directorio con todas sus entradas.
-	iNode * newFile = (iNode *)malloc(sizeof(iNode));
-	newFile =  fs_creat_inode(FIFO,1,size,NULL);
-	fs_insert_inode(newFile);
+	iNode * newFifo = (iNode *)malloc(sizeof(iNode));
+	if( ( newFifo = search_directory(name, current) ) == NULL){
+		return NULL;
+	}		
+	newFifo =  fs_creat_inode(FIFO,1,size,NULL);
+	fs_insert_inode(newFifo);
 
-	insert_file_entry(newFile,current,name);
+	insert_fifo_entry(newFifo,current,name);
 
-	return newFile;
+	return newFifo;
 	//TODO: Actualizar el inodo actual para que tenga la informacion del nuevo.
 	//TODO: No chequea que no alla repetidos.
+}
+
+void insert_fifo_entry(iNode * newFile, iNode * current, char * name){
+	int init_block = current->data.direct_blocks[0];
+	directoryEntry * dr = (directoryEntry*)calloc(sizeof(directoryEntry),96);
+	read_disk(0,init_block,dr,BLOCK_SIZE*12,0);
+	int i;
+	for ( i = 0; i < 96; i++){
+		if ( dr[i].type == 0 ){
+			dr[i].type = FIFO;
+			dr[i].inode = newFile->iNode_number;
+			dr[i].lenght = 0;
+			memcpy(dr[i].name,name,str_len(name));
+			break;
+		}
+	}
+	write_disk(0,init_block,dr,BLOCK_SIZE*12,0);
+
+	return;
+	
 }
 
 void insert_file_entry(iNode * newFile, iNode * current, char * name){
@@ -788,7 +839,6 @@ void rmDir( char * path ){
 			}
 		}
 		write_disk(0,init_block,dr,BLOCK_SIZE*12,0);
-
 	}
 	else
 	{
@@ -936,7 +986,10 @@ int read_inode(iNode * inode, char * buf, int n){
 int do_creat(char * filename, int mode){
 
 	int i;
-	iNode * ret = insert_file(filename,mode,current);
+	iNode * ret;
+	if ( (ret  = insert_file(filename,mode,current)) == NULL){
+		return -1;	
+	} 
 	int fd = insert_fd(ret->iNode_number);
 	return fd;//TODO:Aca devolver lo que le sirva al FDs
 
@@ -1074,7 +1127,7 @@ int creat_in_kernel(creat_param * param){
 	int mode = param->mode;
 	memcpy(filename,param->filename,str_len(filename));
 	/*do_creat(filename,mode);*/
-	return do_creat("teta",1);
+	return do_creat(filename,1);
 
 }
 
@@ -1098,7 +1151,7 @@ int close(int fd){
 void touch_in_kernel( char * filename ){
 	printf("\nEJECUTO");
 	int fd = creat(filename,888);
-	printf("caca\n");
+	//printf("caca\n");
 	char * buffer = "HolaHolaHolaHolax";
 	char * read_buffer = (char *)calloc(str_len(buffer),1);
 	write(fd,buffer,str_len(buffer));
