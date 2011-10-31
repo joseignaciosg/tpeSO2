@@ -272,7 +272,7 @@ int search_free_blocks(int quantityBlocks)
 	superblock->freeBlocks = superblock->freeBlocks - quantityBlocks;
 	superblock->usedBlocks = superblock->usedBlocks + quantityBlocks;
 	
-	printf("Cantidad de bloques libres:%d\n",superblock->freeBlocks);
+	//printf("Cantidad de bloques libres:%d\n",superblock->freeBlocks);
 	
 	write_disk(0,BITMAPSECTOR,bitmap,BITMAP_SIZE,0);
 
