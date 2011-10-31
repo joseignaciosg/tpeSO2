@@ -3,6 +3,7 @@
  *  Kernel.h
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
+ *  	Loreti, Nicolas
  *		ITBA 2011
  *
  ***********************************/
@@ -103,6 +104,8 @@ void * calloc (int size, int quant);
 void logUser(void);
 
 void logout(int argc, char * argv[]);
+
+void createusr(char * name, char * password, char * group);
 
 
 #endif

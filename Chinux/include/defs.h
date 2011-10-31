@@ -1,7 +1,12 @@
-/***************************************************
- Defs.h
-
- ****************************************************/
+/********************************** 
+*
+*  defs.h
+*  	Galindo, Jose Ignacio
+*  	Homovc, Federico
+*  	Loreti, Nicolas
+*		ITBA 2011
+*
+***********************************/
 
 #ifndef _defs_
 #define _defs_
@@ -55,6 +60,10 @@
 enum  state{ RUNNING = 0, READY, BLOCKED};
 typedef enum state process_state;
 
+enum  groups{ ADMIN = 0, USR};
+typedef enum groups groupID;
+
+
 typedef int size_t;
 typedef short int ssize_t;
 
@@ -68,8 +77,8 @@ typedef short int ssize_t;
 #define ACS_INT_386 	0x0E		/* Interrupt GATE 32 bits */
 #define ACS_INT         ( ACS_PRESENT | ACS_INT_386 )
 
-#define ACS_CODE        (ACS_PRESENT | ACS_CSEG | ACS_READ) //el segmento de c�digo esta en memoria, y puede ser s�lo leido
-#define ACS_DATA        (ACS_PRESENT | ACS_DSEG | ACS_WRITE)// el segemento de c�digo esta en memoria y puede ser escrito
+#define ACS_CODE        (ACS_PRESENT | ACS_CSEG | ACS_READ) //el segmento de cï¿œdigo esta en memoria, y puede ser sï¿œlo leido
+#define ACS_DATA        (ACS_PRESENT | ACS_DSEG | ACS_WRITE)// el segemento de cï¿œdigo esta en memoria y puede ser escrito
 #define ACS_STACK       (ACS_PRESENT | ACS_DSEG | ACS_WRITE)//el segmento de pila esta en memoria , y puede ser escrito
 #pragma pack (1) 		/* Alinear las siguiente estructuras a 1 byte */
 
@@ -86,7 +95,7 @@ typedef short int ssize_t;
 /* Descriptor de segmento *///GDT
 typedef struct {
 	word limit, base_l;
-	byte base_m, access, //contiene ubicación, longitud y derechos
+	byte base_m, access, //contiene ubicaciÃ³n, longitud y derechos
 	attribs, //ver pagina 35 libro brey
 	base_h;
 } DESCR_SEG;
@@ -157,8 +166,10 @@ typedef struct{
 }processNode;
 
 typedef struct{
-	char name[20];
-	char password[20];
+	char name[256];
+	char password[256];
+	int usrID;
+	groupID group;
 }user;
 
 typedef struct{
@@ -179,8 +190,8 @@ typedef struct{
 
 typedef struct{
 	char * path;/*path where is fifo is supposed to be created*/
-	size_t fd1;/*fifo�s file descriptor 1*/
-	size_t fd2;/*fifo�s file descriptor 2*/
+	size_t fd1;/*fifo«s file descriptor 1*/
+	size_t fd2;/*fifo«s file descriptor 2*/
 }fifoStruct;
 
 typedef struct{
