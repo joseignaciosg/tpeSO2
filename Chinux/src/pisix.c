@@ -122,12 +122,18 @@ void cd(char * path){
 
 void link(char * path1, char * path2){
 	link_struct * param = malloc(sizeof(link_struct));
-	param->path1 = path1;
-	param->path2 = path2;
+	memcpy(param->path1,path1,str_len(path1));
+	memcpy(param->path2,path2,str_len(path2));
 	_int_79_caller(CD_COM,param);
 }
 
-
+int creat(char * filename,int mode){
+	creat_param * param = malloc(sizeof(creat_param));
+	param->filename = malloc(str_len(filename));
+	memcpy(param->filename,filename,str_len(filename));
+	param->mode = mode;
+	_int_79_caller(CREAT_COM,param);
+}
 
 
 

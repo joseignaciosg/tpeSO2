@@ -46,6 +46,7 @@
 #define CAT_COM 23
 #define LINK_COM 24
 #define CD_COM 25
+#define CREAT_COM 26
 
 
 #define TRUE 1
@@ -201,6 +202,11 @@ typedef struct{
 	char * path1;
 	char * path2;
 }link_struct;
+
+typedef struct{
+	char * filename;
+	int mode;
+}creat_param;
 
 #endif
 

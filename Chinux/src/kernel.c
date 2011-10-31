@@ -584,9 +584,14 @@ void int_79(size_t call, size_t param){
 		cd_in_kernel((char *)param);/*param == path*/
 		break;
 	case LINK_COM:
-		link_in_kernel((char *)param);/*param == path*/
+		link_in_kernel((link_struct *)param);
+		break;
+	case CREAT_COM:
+		creat_in_kernel((creat_param *)param);
 		break;
 	}
+
+
 }
 
 void startTerminal(int pos)

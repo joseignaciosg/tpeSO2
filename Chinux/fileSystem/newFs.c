@@ -986,8 +986,14 @@ void substr(char dest[], char src[], int offset, int len)
 
 
 
-int creat (char *filename, int mode){
-	do_creat(filename,mode);
+int creat_in_kernel(creat_param * param){
+	printf("%s\n",param->filename);
+	char * filename = malloc(str_len(param->filename));
+	int mode = param->mode;
+	memcpy(filename,param->filename,str_len(filename));
+	/*do_creat(filename,mode);*/
+	return do_creat("teta",1);
+
 }
 
 
@@ -1010,6 +1016,7 @@ int close(int fd){
 void touch_in_kernel( char * filename ){
 	printf("\nEJECUTO");
 	int fd = creat(filename,888);
+	printf("caca\n");
 	char * buffer = "HolaHolaHolaHolax";
 	char * read_buffer = (char *)calloc(str_len(buffer),1);
 	write(fd,buffer,str_len(buffer));

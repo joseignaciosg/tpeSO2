@@ -336,7 +336,6 @@ parseBuffer() {
 		cd(buffcopyparsed[1]);/*rmDir*/
 		isFront = 0;
 	}else {
-
 		invalidcom = TRUE;
 		isFront = 0;
 	}
