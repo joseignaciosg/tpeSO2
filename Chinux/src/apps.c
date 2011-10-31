@@ -92,7 +92,7 @@ void top(int argc, char * argv[])
 		for(j = 0; top100[j].pid != -1; j++)
 		{
 			length = 20;
-			proc = GetProcessByPID(top100[j].pid);
+			proc = (PROCESS *) GetProcessByPID(top100[j].pid);
 			printf("%s", proc->name);
 			length -= str_len(proc->name);
 			while(length--)
@@ -105,7 +105,7 @@ void top(int argc, char * argv[])
 }
 
 void fifo_writer_test(int argc, char * argv[]){
-	int * fd = malloc(2*sizeof(int));
+	int * fd = (int *)malloc(2*sizeof(int));
 	char * path = "hello";
 	mkfifo( path, fd);
 	CreateProcessAt("fifo_reader", fifo_reader_test,1, (int)fd, 0, 0x400, 2, 1);
@@ -123,7 +123,7 @@ void fifo_writer_test(int argc, char * argv[]){
 
 void fifo_reader_test(int argc, char * argv[]){
 	int * fd = (int *)argc;
-	char * buff = malloc(6);
+	char * buff = (char *)malloc(6);
 	int i=0;
 	while(i<3){
 		read_fifo(fd[0],buff, 6);

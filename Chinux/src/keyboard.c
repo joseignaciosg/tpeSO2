@@ -200,7 +200,7 @@ void int_09() {
 			currentProcessTTY = currentTTY;
 			moveCursor();
 			currentProcessTTY = auxtty;
-			proc = GetProcessByPID(terminals[currentTTY].PID);
+			proc = (PROCESS *)GetProcessByPID(terminals[currentTTY].PID);
 			if(terminals[currentTTY].buffer.size == 0 && proc->waitingPid == 0)
 				awake_process(terminals[currentTTY].PID);
 			break;
