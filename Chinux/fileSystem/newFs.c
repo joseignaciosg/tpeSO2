@@ -100,7 +100,7 @@ void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 	close(fd);
 	//cd("..");
 
-	create_n_bytes("diezmega", 5242880*2);
+	//create_n_bytes("diezmega", 5242880*2);
 	return;
 }
 
@@ -508,7 +508,7 @@ iNode * insert_file( char * name, int mode, iNode * current ){
 
 	//TODO: CRear el inodo de directorio con todas sus entradas.
 	iNode * newFile = (iNode *)malloc(sizeof(iNode));
-	if( ( newFile = search_directory(name, current) ) == NULL){
+	if( ( newFile = search_directory(name, current) ) != NULL){
 		return NULL;
 	}	
 	newFile =  fs_creat_inode(FILE,mode,0,current);
@@ -988,6 +988,7 @@ int do_creat(char * filename, int mode){
 	int i;
 	iNode * ret;
 	if ( (ret  = insert_file(filename,mode,current)) == NULL){
+		printf("asd");
 		return -1;	
 	} 
 	int fd = insert_fd(ret->iNode_number);
