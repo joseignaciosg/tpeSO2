@@ -271,6 +271,7 @@ void free_used_blocks(int init_bit, int quantity, int mode){
  *
  */
 
+fs_creat_inode(FIFO,777,0,current)
 
 iNode * fs_creat_inode(int identifier, int mode, int size, iNode * current){
 	
@@ -287,9 +288,24 @@ void fs_init_inode( iNode * inode, int id, int md, int sz, iNode * current){
 	//inode->gid = session_gid;
 	inode->mode = md;
 	inode->size = sz;
-	
-	inode->data = *fs_init_dataStream(sz,id,inode->iNode_number,current);
+	if( id == FIFO ){
+		inode->data = *fs_init_fifoStream(sz,id,inode->iNode_number,current);	
+	}else{
+		inode->data = *fs_init_dataStream(sz,id,inode->iNode_number,current);
+
+	}
 	return;
+}
+
+dataStream * fs_init_fifoStream(int size,int id,int number,iNode * current){
+
+	dataStream * ret = (dataStream *)malloc(sizeof(dataStream));
+	char * pointer = (char *)malloc(size);
+	
+	ret->direct_blocks[0] = pointer;
+	ret->direct_blocks[1] = size;
+	
+	return ret;
 }
 
 dataStream * fs_init_dataStream(int size, int id, int number, iNode * current){

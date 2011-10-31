@@ -51,7 +51,8 @@
 #define NULL 0
 #define BLOCK_SIZE 512
 #define	BITMAPSECTOR (SUPERBLOCKSECTOR+1)
-#define	SUPERBLOCKSECTOR 1
+#define MBRSECTOR 0
+#define	SUPERBLOCKSECTOR (MBRSECTOR + 1)
 #define INODEMAPSECTOR (BITMAPSECTOR + (BITMAP_SIZE/512) )
 #define INODETABLESECTOR (INODEMAPSECTOR + (INODEMAP_SIZE/512) )
 #define BITMAP_SIZE 2048
@@ -169,6 +170,7 @@ void print_directories(iNode * current);
 
 
 iNode * parser_path(char * path, iNode * posible_inode);
+dataStream * fs_init_fifoStream(int size,int id,int number,iNode * current);
 void makeDir(char *);
 void rmDir(char *);
 void cd(char *);
