@@ -508,7 +508,7 @@ iNode * insert_file( char * name, int mode, iNode * current ){
 
 	//TODO: CRear el inodo de directorio con todas sus entradas.
 	iNode * newFile = (iNode *)malloc(sizeof(iNode));
-	if( ( newFile = search_directory(name, current) ) != NULL){
+	if( ( newFile = search_directory(name, current) ) != NULL){		
 		return NULL;
 	}	
 	newFile =  fs_creat_inode(FILE,mode,0,current);
@@ -528,6 +528,8 @@ iNode * insert_fifo( char * name, int size, iNode * current2 ){
 	/*if( ( newFifo = search_directory(name, current) ) != NULL){
 		return NULL;
 	}	*/
+
+
 	newFifo =  fs_creat_inode(FIFO,1,size,NULL);
 	fs_insert_inode(newFifo);
 
@@ -1151,6 +1153,7 @@ int close(int fd){
 
 void touch_in_kernel( char * filename ){
 	int fd = do_creat(filename,888);
+
 	char * buffer = "HolaHolaHolaHolax";
 	char * read_buffer = (char *)calloc(str_len(buffer),1);
 	write(fd,buffer,str_len(buffer));
@@ -1179,7 +1182,7 @@ int getidentifier(int filedescriptor){
 void cat_in_kernel( char * filename ){
 	
 	int fd;
-	if ( ( fd = open(filename,1,2) ) == -1){
+	if ( ( fd = do_open(filename,1,2) ) == -1){
 		printf("File not exist\n");
 		return;
 	}
@@ -1238,6 +1241,8 @@ void link_in_kernel(link_struct * param){
 	//Si no encontro una barra es el nombre de archivo en el current.
 		iNode * path2_inode = current;
 		iNode * link_node = insert_file(path2,2,path2_inode);
+		
+		ls("");
 		copy_link_inode(path1_inode, link_node);
 		fs_insert_inode(link_node);
 	}
