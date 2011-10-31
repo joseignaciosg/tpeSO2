@@ -3,6 +3,7 @@
 *  pisix.c implementation of pseudo posix interfaceº
 *  	Galindo, Jose Ignacio
 *  	Homovc, Federico
+ *  	Loreti, Nicolas
 *		ITBA 2011
 *
 ***********************************/
@@ -13,14 +14,11 @@
 #include "../include/kernel.h"
 #include "../include/shell.h"
 #include "../include/utils.h"
-#include "../include/process.h"
 #include "../include/defs.h"
 #include "../include/pisix.h"
 
 
 extern int nextPID;
-
-
 
 
 void block_process(int pid){

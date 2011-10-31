@@ -1,25 +1,27 @@
 /********************************** 
 *
-*  scheduler.c
+*  scheduler2.c
 *  	Galindo, Jose Ignacio
 *  	Homovc, Federico
+*  	Loreti, Nicolas
 *		ITBA 2011
 *
 ***********************************/
 
 #include "../include/defs.h"
-#include "../include/kc.h"
+#include "../include/kernel.h"
 
 int last100[100]={0};
-int counter100;
+int counter100 = 0;
 int FirstTime = 1;
-extern int CurrentPID;
-extern PROCESS idle;
-extern processList ready;
-
+int actualKilled = 0;
 int timeslot = TIMESLOT;
+
+extern int CurrentPID;
 extern int currentProcessTTY;
 extern int currentTTY;
+extern PROCESS idle;
+extern processList ready;
 
 void SaveESP (int);
 PROCESS * GetNextProcess (void);
@@ -30,7 +32,6 @@ int isTimeSlot(void);
 
 int isTimeSlot()
 {
-	//printf("timeslot:%d", timeslot);
 	processNode * node;
 	
 	node = ((processNode*)ready);
@@ -75,8 +76,6 @@ PROCESS * GetNextProcess(void)
 		currentProcessTTY = currentTTY;
 	else
 		currentProcessTTY = temp->tty;
-	//printf("PID: %d\n", CurrentPID);
-	//printf("process name: %s\n", temp->name);
 	last100[counter100] = CurrentPID;
 	counter100 = (counter100 + 1) % 100;
 	return temp;
@@ -95,8 +94,6 @@ PROCESS * GetNextTask()
 
 	while(aux != NULL)
 	{
-		/*if(aux->process->state == READY)
-		printf("%s pid:%d acum:%d priority:%d\n", aux->process->name, aux->process->pid, aux->process->acum, aux->process->priority);*/
 		if(aux->process->acum >= maxAcum && aux->process->state == READY)
 		{
 			if(aux->process->acum == maxAcum)

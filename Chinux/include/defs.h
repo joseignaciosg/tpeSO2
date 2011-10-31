@@ -11,6 +11,7 @@
 #ifndef _defs_
 #define _defs_
 
+/***	Module Defines	***/
 #define byte unsigned char
 #define word short int
 #define dword int
@@ -54,20 +55,6 @@
 #define CREAT_COM 26
 #define RM_FIFO 27
 
-
-#define TRUE 1
-#define FALSE 0
-
-enum  state{ RUNNING = 0, READY, BLOCKED};
-typedef enum state process_state;
-
-enum  groups{ ADMIN = 0, USR};
-typedef enum groups groupID;
-
-
-typedef int size_t;
-typedef short int ssize_t;
-
 /* Flags para derechos de acceso de los segmentos */
 #define ACS_PRESENT     0x80            /* segmento presente en memoria */
 #define ACS_CSEG        0x18            /* segmento de codigo */
@@ -84,15 +71,26 @@ typedef short int ssize_t;
 #pragma pack (1) 		/* Alinear las siguiente estructuras a 1 byte */
 
 #define BUFFER_SIZE 256
+#define TRUE 1
+#define FALSE 0
+#define NULL 0
 
 #define MAX_NUM 25		/*Maxima cantidad de digitos de un int*/
 
 #define MAX_PRIORITY 4
 #define PRIORITY_RATIO 2
 #define TIMESLOT 3
+#define WHITE_TXT 0x07 // video attribute, white letters, black background
 
-#define NULL 0
+enum  state{ RUNNING = 0, READY, BLOCKED};
+typedef enum state process_state;
 
+enum  groups{ ADMIN = 0, USR};
+typedef enum groups groupID;
+
+
+typedef int size_t;
+typedef short int ssize_t;
 /* Descriptor de segmento *///GDT
 typedef struct {
 	word limit, base_l;
@@ -190,7 +188,7 @@ typedef struct{
 }createProcessParam;
 
 typedef struct{
-	char * name;/*TODO test*/
+	char * name;
 	size_t fd1;/*fifo«s file descriptor 1*/
 	size_t fd2;/*fifo«s file descriptor 2*/
 }fifoStruct;

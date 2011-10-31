@@ -1,9 +1,12 @@
-/*
- *
- * Defines 
- * 
- * 
- */
+/********************************** 
+*
+*  fs.h
+*  	Galindo, Jose Ignacio
+*  	Homovc, Federico
+*  	Loreti, Nicolas
+*		ITBA 2011
+*
+***********************************/
 
 #define OK_STATUS 1
 #define WRONG_PATH 2

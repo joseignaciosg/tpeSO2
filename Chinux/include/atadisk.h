@@ -1,3 +1,13 @@
+/********************************** 
+*
+*  atadisk.h
+*  	Galindo, Jose Ignacio
+*  	Homovc, Federico
+*  	Loreti, Nicolas
+*		ITBA 2011
+*
+***********************************/
+
 #ifndef _AT_WINI_H_
 #define _AT_WINI_H_
 
@@ -39,18 +49,14 @@
 #define DEV_PER_DRIVE 5 /* hd0 + hd1 + hd2 + hd3 + hd4 = 5 */
 
 
-enum{
-READ_DISK = 0,
-WRITE_DISK,
-OK,
-ERROR
-};
+enum{ READ_DISK = 0, WRITE_DISK, OK, ERROR };
 
 int driver(char * ata);
 
 void sendComm(int ata, int rdwr, unsigned int sector);
 
 int _disk_read(int ata, char * ans, int numreads, unsigned int sector);
+
 unsigned short getDataRegister(int ata);
 
 int _disk_write(int ata, char * msg, int numreads, unsigned int sector);

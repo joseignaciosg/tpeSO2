@@ -3,12 +3,13 @@
 *  scheduler.c
 *  	Galindo, Jose Ignacio
 *  	Homovc, Federico
+*  	Loreti, Nicolas
 *		ITBA 2011
 *
 ***********************************/
 
 #include "../include/defs.h"
-#include "../include/kc.h"
+#include "../include/kernel.h"
 
 int last100[100]={0};
 int counter100 = 0;
@@ -31,7 +32,6 @@ int isTimeSlot(void);
 
 int isTimeSlot()
 {
-	//printf("timeslot:%d", timeslot);
 	processNode * node;
 	
 	node = ((processNode*)ready);
@@ -76,8 +76,6 @@ PROCESS * GetNextProcess(void)
 		currentProcessTTY = currentTTY;
 	else
 		currentProcessTTY = temp->tty;
-	//printf("PID: %d\n", CurrentPID);
-	//printf("process name: %s\n", temp->name);
 	last100[counter100] = CurrentPID;
 	counter100 = (counter100 + 1) % 100;
 	return temp;
@@ -103,12 +101,6 @@ PROCESS * GetNextTask()
 		}
 		return &idle;
 	}
-
-	/*if(FirstTime || actualKilled)
-	{
-		flag = 1;
-		FirstTime = actualKilled = 0;
-	}*/
 
 	while(aux != NULL)
 	{
@@ -142,7 +134,7 @@ void SetupScheduler(void)
 	idle.pid = 0;
 	idle.foreground = 0;
 	idle.priority = 4;
-	idle.name = (char*)malloc(10);
+	idle.name = (char*)malloc(8);
 	memcpy(idle.name, "Idle", str_len("Idle") + 1);
 	idle.state = READY;
 	idle.tty = 0;
@@ -150,7 +142,7 @@ void SetupScheduler(void)
 	idle.stacksize = 0x200;
 	idle.parent = -1;
 	idle.waitingPid = -1;
-	idle.ESP = LoadStackFrame(Idle,0,0,(int)(idleprocess+0x1FF), end_process);
+	idle.ESP = LoadStackFrame(Idle,0,0,(int)(idleprocess + 0x1FF), end_process);
 	
 	return;
 }

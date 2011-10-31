@@ -3,7 +3,7 @@
  *  stdio.c
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
- *		Reznik, Luciana
+ *	Loreti, Nicolas
  *		ITBA 2011
  *
  ***********************************/
@@ -129,7 +129,6 @@ printf(char * format, ...) {
 	char *p;
 	va_list ap;
 	
-	//_Cli();
 	va_start(ap,format);
 
 	for (p = format; *p; p++) {
@@ -158,7 +157,6 @@ printf(char * format, ...) {
 	}
 
 	va_end(ap);
-	//_Sti();
 
 	return count;
 }

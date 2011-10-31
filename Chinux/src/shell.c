@@ -16,7 +16,6 @@
 #include "../include/utils.h"
 #include "../include/keyboard.h"
 #include "../include/video.h"
-#include "../include/process.h"
 #include "../include/fs.h"
 #include "../include/atadisk.h"
 #include "../include/apps.h"
@@ -44,6 +43,7 @@ extern int CurrentPID;
 extern int logPID;
 extern user currentUsr;
 
+static int read_command();
 
 char
 * splash_screen[25] = {
@@ -263,18 +263,16 @@ parseBuffer() {
 	} else if (strcmp("getCPUSpeed", buffcopy)) {
 		putc('\n');
 		printf("CPU Speed: %ld  MHz", getCPUSpeed());
+		isFront = 0;
 	} else if (strcmp("help", buffcopy)) {
 		putc('\n');
 		showHelp();
 		isFront = 0;
 	}else if(strcmp("prueba", buffcopy)){
-		//putc('\n');
 		pid = CreateProcessAt("Prueba", (int(*)(int, char**))prueba, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(strcmp("fifowriter", buffcopy)){
-			//putc('\n');
-			pid = CreateProcessAt("fifo_writer", (int(*)(int, char**))fifo_writer_test, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
+		pid = CreateProcessAt("fifo_writer", (int(*)(int, char**))fifo_writer_test, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(strcmp("prueba2", buffcopy)){
-		//putc('\n');
 		pid = CreateProcessAt("Prueba2", (int(*)(int, char**))prueba2, currentProcessTTY, 0, (char**)0, 0x400, 2, isFront);
 	}else if(strcmp("prioridad0", buffcopy)){
 		pid = CreateProcessAt("prioridad0", (int(*)(int, char**))prioridad, currentProcessTTY, 0, (char**)0, 0x400, 0, isFront);
