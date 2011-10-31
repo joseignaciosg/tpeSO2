@@ -491,8 +491,6 @@ void mkfifo_in_kernel(fifoStruct * param){
 }
 
 
-
-
 void
 semget_in_kernel(semItem * param){
 		if ( semCount == 20 ){

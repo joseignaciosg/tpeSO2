@@ -271,7 +271,6 @@ void free_used_blocks(int init_bit, int quantity, int mode){
  *
  */
 
-fs_creat_inode(FIFO,777,0,current)
 
 iNode * fs_creat_inode(int identifier, int mode, int size, iNode * current){
 	
