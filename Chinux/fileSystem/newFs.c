@@ -298,7 +298,7 @@ void fs_init_inode( iNode * inode, int id, int md, int sz, iNode * current){
 dataStream * fs_init_fifoStream(int size,int id,int number,iNode * current){
 
 	dataStream * ret = (dataStream *)malloc(sizeof(dataStream));
-	char * pointer = (char *)malloc(size);
+	char * pointer = (char *)malloc(sizeof(char) * MAX_FIFO_SIZE);
 	
 	ret->direct_blocks[0] = (int)pointer;
 	ret->direct_blocks[1] = size;
