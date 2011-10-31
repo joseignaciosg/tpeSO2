@@ -59,9 +59,11 @@ int create_file(){
 	myfd_table[fileCount].fd = fileCount;/*cabeza*/
 	iNode * node = insert_fifo("my_fifo",MAX_FIZE_SIZE,NULL);
 	/*myfd_table[fileCount].file = malloc(sizeof(char)*MAX_FIZE_SIZE);*/
-	myfd_table[fileCount].file = node->data->direct_blocks[0];
-	myfd_table[fileCount].size = node->data->direct_blocks[1];
-	myfd_table[fileCount].curr_size =0;
+	myfd_table[fileCount].file = (char *)node->data.direct_blocks[0];
+	myfd_table[fileCount].curr_size = node->data.direct_blocks[1];
+	/*myfd_table[fileCount].curr_size=0;*/
+	printf("%d\n",myfd_table[fileCount].file );
+	printf("%d\n",node->data.direct_blocks[1]);
 	semItem * sem = malloc(sizeof(semItem));
 	sem->value = 0;
 	semget_in_kernel(sem);
