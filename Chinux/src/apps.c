@@ -121,7 +121,6 @@ void fifo_writer_test(int argc, char * argv[]){
 
 	rmfifo(fd);
 
-	_Sti();
 
 }
 

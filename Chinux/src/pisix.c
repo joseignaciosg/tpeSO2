@@ -64,17 +64,10 @@ void getTerminalCurPos(int * curpos)
 	_int_79_caller(TERM_CURPOS,curpos);
 }
 
-/*void getCurrentTTY(int currtty)
-{
-	_int_79_caller(CURR_TTY,currtty);
-}*/
 
 int mkfifo(  int * fd )
 {
 	fifoStruct * param = malloc(sizeof(fifoStruct));
-	/*param->name = malloc(str_len(name));
-	memcpy(param->name,name,str_len(name));
-	printf("mkfifo: %s\n", param->name);*/
 	_int_79_caller(MK_FIFO,&param);
 	fd[0] = param->fd1;
 	fd[1] = param->fd2;
