@@ -12,6 +12,12 @@ int read_disk(int ata,int sector, void * msg, int count, int lenght){
 void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 	
 	/*mbr sector*/
+	int fd;
+	user * users = calloc(sizeof(user), 100);
+	strcopy(users[0].name, "admin");
+	strcopy(users[0].password,  "admin");
+	users[0].usrID = 0;
+	users[0].group = ADMIN;
 	mbr->existFS = 1;
 	write_disk(0, 0,mbr,BLOCK_SIZE,0);
 	
@@ -35,6 +41,15 @@ void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 	write_disk(0,1,superblock,BLOCK_SIZE,0);
 	current = superblock->root;
 
+	makeDir("users");
+	makeDir("etc");
+
+	cd("users");
+	fd = do_creat("users", 777);
+	write(fd, (char *)users, sizeof(user) * 100);
+	close(fd);
+	cd("..");
+	
 	return;
 }
 

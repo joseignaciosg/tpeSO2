@@ -46,6 +46,9 @@
 enum  state{ RUNNING = 0, READY, BLOCKED};
 typedef enum state process_state;
 
+enum  groups{ ADMIN = 0, USR};
+typedef enum groups groupID;
+
 typedef int size_t;
 typedef short int ssize_t;
 
@@ -148,8 +151,10 @@ typedef struct{
 }processNode;
 
 typedef struct{
-	char name[20];
-	char password[20];
+	char name[256];
+	char password[256];
+	int usrID;
+	groupID group;
 }user;
 
 typedef struct{

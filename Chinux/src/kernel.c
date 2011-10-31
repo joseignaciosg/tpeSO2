@@ -29,8 +29,7 @@ int currentProcessTTY = 0;
 int logPID;
 TTY terminals[4];
 user admin;
-PROCESS procesos[5];
-STACK_FRAME stacks[5];
+char loginBuffer[BUFFER_SIZE] = {0};
 
 extern int timeslot;
 extern int logoutPID;
@@ -200,8 +199,9 @@ kmain()
 	for(i = 0; i < 4; i++)
 		startTerminal(i);
 	logPID = CreateProcessAt("Login", (int(*)(int, char**))logUser, 0, 0, (char**)0, 0x400, 5, 1);
-	strcopy(admin.name, "chinux", str_len("chinux"));
+	/*strcopy(admin.name, "chinux", str_len("chinux"));
 	strcopy(admin.password, "chinux", str_len("chinux"));
+	admin.group = ADMIN;*/
 	_Sti();
 
 	while(TRUE)
@@ -471,9 +471,6 @@ void mkfifo_in_kernel(fifoStruct * param){
 
 }
 
-
-
-
 void
 semget_in_kernel(semItem * param){
 		if ( semCount == 20 ){
@@ -574,21 +571,28 @@ void sleep(int secs)
 
 void logUser(void)
 {
-	int i;
+	int i, fd;
+	user * usr;
+	cd("users");
+	fd = do_open("users", 777, 777);
+	usr = malloc(sizeof(user) * 100);
+	do_read(fd, (char *)usr, sizeof(user) * 100);
+	printf("%s\n", usr[0].name);
 	while(!usrLoged)
 	{
 		printf("username: ");
 		moveCursor();
 		usrName = 1;
 		block_process(CurrentPID);
-		parseBuffer();
+		scanf("%s", loginBuffer);
+		//parseBuffer();
 		usrName = 0;
 		printf("\n");
 		printf("password: ");
 		moveCursor();
 		password = 1;
 		block_process(CurrentPID);
-		parseBuffer();
+		//parseBuffer();
 		password = 0;
 		printf("\n");
 	}
@@ -596,6 +600,8 @@ void logUser(void)
 	terminals[1].PID = CreateProcessAt("Shell1", (int(*)(int, char**))shell, 1, 0, (char**)0, 0x400, 2, 1);
 	terminals[2].PID = CreateProcessAt("Shell2", (int(*)(int, char**))shell, 2, 0, (char**)0, 0x400, 2, 1);
 	terminals[3].PID = CreateProcessAt("Shell3", (int(*)(int, char**))shell, 3, 0, (char**)0, 0x400, 2, 1);
+	do_close(fd);
+	cd("..");
 	_Sti();
 	return;
 }
@@ -609,5 +615,11 @@ void logout(int argc, char * argv[])
 	usrLoged = 0;
 	logPID = CreateProcessAt("logUsr", (int(*)(int, char**))logUser, currentProcessTTY, 0, (char**)0, 0x400, 4, 1);
 	_Sti();
+}
+
+void createusr(char * name, char * password, char * group)
+{
+	
+
 }
 
