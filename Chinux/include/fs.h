@@ -191,6 +191,7 @@ int insert_fd(int inode);
 int delete_fd(int filedescriptor);
 int do_close(int fd);
 
+iNode * insert_fifo( char * name, int size, iNode * current );
 void insert_file_entry(iNode * newFile, iNode * current, char * name);
 iNode * insert_file( char * name, int mode, iNode * current );
 

@@ -468,6 +468,20 @@ iNode * insert_file( char * name, int mode, iNode * current ){
 	//TODO: No chequea que no alla repetidos.
 }
 
+iNode * insert_fifo( char * name, int size, iNode * current ){
+
+	//TODO: CRear el inodo de directorio con todas sus entradas.
+	iNode * newFile = (iNode *)malloc(sizeof(iNode));
+	newFile =  fs_creat_inode(FIFO,1,size,NULL);
+	fs_insert_inode(newFile);
+
+	insert_file_entry(newFile,current,name);
+
+	return newFile;
+	//TODO: Actualizar el inodo actual para que tenga la informacion del nuevo.
+	//TODO: No chequea que no alla repetidos.
+}
+
 void insert_file_entry(iNode * newFile, iNode * current, char * name){
 	int init_block = current->data.direct_blocks[0];
 	directoryEntry * dr = (directoryEntry*)calloc(sizeof(directoryEntry),96);
