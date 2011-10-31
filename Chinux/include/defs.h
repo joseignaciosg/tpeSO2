@@ -50,7 +50,8 @@
 #define TOUCH_COM 22
 #define CAT_COM 23
 #define LINK_COM 24
-#define CD_COM 24
+#define CD_COM 25
+#define CREAT_COM 26
 
 
 #define TRUE 1
@@ -76,8 +77,8 @@ typedef short int ssize_t;
 #define ACS_INT_386 	0x0E		/* Interrupt GATE 32 bits */
 #define ACS_INT         ( ACS_PRESENT | ACS_INT_386 )
 
-#define ACS_CODE        (ACS_PRESENT | ACS_CSEG | ACS_READ) //el segmento de c�digo esta en memoria, y puede ser s�lo leido
-#define ACS_DATA        (ACS_PRESENT | ACS_DSEG | ACS_WRITE)// el segemento de c�digo esta en memoria y puede ser escrito
+#define ACS_CODE        (ACS_PRESENT | ACS_CSEG | ACS_READ) //el segmento de cï¿œdigo esta en memoria, y puede ser sï¿œlo leido
+#define ACS_DATA        (ACS_PRESENT | ACS_DSEG | ACS_WRITE)// el segemento de cï¿œdigo esta en memoria y puede ser escrito
 #define ACS_STACK       (ACS_PRESENT | ACS_DSEG | ACS_WRITE)//el segmento de pila esta en memoria , y puede ser escrito
 #pragma pack (1) 		/* Alinear las siguiente estructuras a 1 byte */
 
@@ -94,7 +95,7 @@ typedef short int ssize_t;
 /* Descriptor de segmento *///GDT
 typedef struct {
 	word limit, base_l;
-	byte base_m, access, //contiene ubicación, longitud y derechos
+	byte base_m, access, //contiene ubicaciÃ³n, longitud y derechos
 	attribs, //ver pagina 35 libro brey
 	base_h;
 } DESCR_SEG;
@@ -189,8 +190,8 @@ typedef struct{
 
 typedef struct{
 	char * path;/*path where is fifo is supposed to be created*/
-	size_t fd1;/*fifo�s file descriptor 1*/
-	size_t fd2;/*fifo�s file descriptor 2*/
+	size_t fd1;/*fifo«s file descriptor 1*/
+	size_t fd2;/*fifo«s file descriptor 2*/
 }fifoStruct;
 
 typedef struct{
@@ -206,6 +207,17 @@ typedef struct{
 	int curr_size;
 	int sem_key;
 }my_fdItem;
+
+
+typedef struct{
+	char * path1;
+	char * path2;
+}link_struct;
+
+typedef struct{
+	char * filename;
+	int mode;
+}creat_param;
 
 #endif
 

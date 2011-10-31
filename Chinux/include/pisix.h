@@ -1,13 +1,3 @@
-/********************************** 
-*
-*  pisix.h
-*  	Galindo, Jose Ignacio
-*  	Homovc, Federico
-*  	Loreti, Nicolas
-*		ITBA 2011
-*
-***********************************/
-
 /*
  * Calls (for int_80 function)
  */
@@ -39,3 +29,10 @@ void down(int key);
 void mkDir(char * newName);
 
 void touch( char * filename );
+
+void cat( char * filename );
+
+void cd(char * path);
+
+void link(char * path1, char * path2);
+

@@ -10,19 +10,29 @@
 
 #include "../include/fs.h"
 #include "../include/kernel.h"
+#include "../include/defs.h"
+
 
 int write_disk(int ata, int sector, void * msg, int count, int offset){
 	
 	return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
+	
 	/*int i;
+	char * buffer = (char *)calloc(512,128);
 	int cantsectors = (int)(count/512) + 1;
-	if ( cantsectors < 128 ){
+
+	if ( cantsectors <= 128 ){
 		return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
 	}else{
-		for ( i = sector; i < cantsectors; i+=128 ){
-			_disk_write(0x1f0,(char*)(msg),127,i+1);
-		}
-		return _disk_write(0x1f0,(char*)(msg),cantsectors-(i-128),i-128);
+		int cant = cantsectors/128;
+		
+		for( i = 0; i < cant; i++){
+			memcpy(buffer,msg+(i*(512*128)),512*128);
+			_disk_write(0x1f0,(char*)(buffer),127,(i*128));
+		}	
+		int lastsectors = cantsectors - (128 * cant);
+		return _disk_write(0x1f0,(char*)(buffer),lastsectors,128*cant);
+
 	}*/
 }
 
@@ -59,15 +69,15 @@ void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 	write_disk(0,0,buffer,5120,0);
 	*/
 
-	write_disk(0, 0,mbr,BLOCK_SIZE,0);//BLOCK_SIZE
+	write_disk(0,MBRSECTOR,mbr,BLOCK_SIZE,0);//BLOCK_SIZE
 	
 	/* superBlock sector */
 	superblock->name = "Chinux";
 	superblock->blockSize = BLOCK_SIZE;
-	superblock->freeBlocks = 10000;//TODO:PONER LA CANTIDAD POSTA.
+	superblock->freeBlocks = DISK_SIZE/BLOCK_SIZE;//TODO:PONER LA CANTIDAD POSTA.
 	superblock->usedBlocks = 0;
 	superblock->root = NULL; 
-	write_disk(0,1,superblock,BLOCK_SIZE,0);
+	write_disk(0,SUPERBLOCKSECTOR,superblock,BLOCK_SIZE,0);
 
 	/* bitmap Sectors */
 	init_bitmap();
@@ -86,8 +96,8 @@ void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 
 	//cd("users");
 	fd = do_creat("usersfile", 777);
-	write(fd, (char *)users, sizeof(user));
-	//close(fd);
+	write(fd, (char *)users, sizeof(user) * 100);
+	close(fd);
 	//cd("..");
 	
 	return;
@@ -286,7 +296,6 @@ void free_used_blocks(int init_bit, int quantity, int mode){
  *
  */
 
-
 iNode * fs_creat_inode(int identifier, int mode, int size, iNode * current){
 	
 	iNode * ret = (iNode *)malloc(sizeof(iNode));
@@ -302,9 +311,24 @@ void fs_init_inode( iNode * inode, int id, int md, int sz, iNode * current){
 	//inode->gid = session_gid;
 	inode->mode = md;
 	inode->size = sz;
-	
-	inode->data = *fs_init_dataStream(sz,id,inode->iNode_number,current);
+	if( id == FIFO ){
+		inode->data = *fs_init_fifoStream(sz,id,inode->iNode_number,current);	
+	}else{
+		inode->data = *fs_init_dataStream(sz,id,inode->iNode_number,current);
+
+	}
 	return;
+}
+
+dataStream * fs_init_fifoStream(int size,int id,int number,iNode * current){
+
+	dataStream * ret = (dataStream *)malloc(sizeof(dataStream));
+	char * pointer = (char *)malloc(sizeof(char) * MAX_FIFO_SIZE);
+	
+	ret->direct_blocks[0] = (int)pointer;
+	ret->direct_blocks[1] = size;
+	
+	return ret;
 }
 
 dataStream * fs_init_dataStream(int size, int id, int number, iNode * current){
@@ -460,6 +484,20 @@ iNode * insert_file( char * name, int mode, iNode * current ){
 	//TODO: CRear el inodo de directorio con todas sus entradas.
 	iNode * newFile = (iNode *)malloc(sizeof(iNode));
 	newFile =  fs_creat_inode(FILE,mode,0,current);
+	fs_insert_inode(newFile);
+
+	insert_file_entry(newFile,current,name);
+
+	return newFile;
+	//TODO: Actualizar el inodo actual para que tenga la informacion del nuevo.
+	//TODO: No chequea que no alla repetidos.
+}
+
+iNode * insert_fifo( char * name, int size, iNode * current ){
+
+	//TODO: CRear el inodo de directorio con todas sus entradas.
+	iNode * newFile = (iNode *)malloc(sizeof(iNode));
+	newFile =  fs_creat_inode(FIFO,1,size,NULL);
 	fs_insert_inode(newFile);
 
 	insert_file_entry(newFile,current,name);
@@ -734,7 +772,23 @@ void rmDir( char * path ){
 	{
 		printf("Wrong name or path\n");
 	} else if( posible_inode->identifier != DIRECTORY ){
-		printf("Its not a Directory\n");
+		//printf("Its not a Directory\n");	
+		int inode_number = posible_inode->iNode_number;
+		int init_block = current->data.direct_blocks[0];
+		directoryEntry * dr = (directoryEntry*)calloc(sizeof(directoryEntry),96);
+		read_disk(0,init_block,dr,BLOCK_SIZE*12,0);
+		for ( i = 2; i < 96; i++){
+			if ( dr[i].inode == inode_number){
+				char * empty_name = "\0";				
+				dr[i].type = 0;
+				dr[i].inode = 0;
+				dr[i].lenght = 0;
+				strcopy(dr[i].name,empty_name,1);				
+				break; 
+			}
+		}
+		write_disk(0,init_block,dr,BLOCK_SIZE*12,0);
+
 	}
 	else
 	{
@@ -752,7 +806,7 @@ void rmDir( char * path ){
 		read_disk(0,father_init_block,father_dr,BLOCK_SIZE*12,0);
 		
 		
-		int i;
+		
 		for ( i = 2; i < 96; i++){
 			if ( father_dr[i].inode == inode_number){
 				char * empty_name = "\0";				
@@ -891,18 +945,23 @@ int do_creat(char * filename, int mode){
 int do_open(char * filename, int flags, int mode){
 	
 	iNode * posible_file = search_directory(filename, current);
-	printf("size:%d\n",posible_file->size);
+	//printf("size:%d\n",posible_file->size);
 	int fd;	
 	if ( posible_file != NULL)
 	{	
 		if ( (fd = search_for_inode(posible_file->iNode_number)) != -1){
 			return fd;
 		}else{
-			printf("Error opening file\n");
+			return insert_fd(posible_file->iNode_number);
 		}
 	}else
 	{
-		do_creat(filename,mode);		
+		if(flags == 0){
+			do_creat(filename,mode);
+		}else{
+			return -1;
+		}
+				
 		//TODO:Falta todo el tema de permisos y opciones para abrir.
 	}
 			
@@ -1009,8 +1068,14 @@ void substr(char dest[], char src[], int offset, int len)
 
 
 
-int creat (char *filename, int mode){
-	do_creat(filename,mode);
+int creat_in_kernel(creat_param * param){
+	printf("%s\n",param->filename);
+	char * filename = malloc(str_len(param->filename));
+	int mode = param->mode;
+	memcpy(filename,param->filename,str_len(filename));
+	/*do_creat(filename,mode);*/
+	return do_creat("teta",1);
+
 }
 
 
@@ -1033,6 +1098,7 @@ int close(int fd){
 void touch_in_kernel( char * filename ){
 	printf("\nEJECUTO");
 	int fd = creat(filename,888);
+	printf("caca\n");
 	char * buffer = "HolaHolaHolaHolax";
 	char * read_buffer = (char *)calloc(str_len(buffer),1);
 	write(fd,buffer,str_len(buffer));
@@ -1046,18 +1112,31 @@ void touch_in_kernel( char * filename ){
 	
 }
 
+int getsize(int filedescriptor){
+
+	iNode * nodo = fs_get_inode(search_for_fd(filedescriptor));
+	return nodo->size;
+
+}
+
 void cat_in_kernel( char * filename ){
-	int fd = open(filename,2,2);
-	char * buffer = malloc(14);	
+	int fd;
+	if ( ( fd = open(filename,1,2) ) == -1){
+		printf("File not exist\n");
+	return;
+	}
+
+	char * buffer = malloc(getsize(fd));
 	read(fd,buffer,-1);
-	printf("%s\n",buffer);
+	printf("\n%s",buffer);
 }
 
 //RM directorio creo un subdir, me meto y para volver pincha..WTF
 //Que ande el Path absoluto...
 
-void link (char * path1, char * path2){
-
+void link_in_kernel(link_struct * param){
+	char * path1 = param->path1;
+	char * path2 = param->path2;
 	if ( strcmp("hola",path1) == 1){
 		printf("ENTRO\n");
 	}	

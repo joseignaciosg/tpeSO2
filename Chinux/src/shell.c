@@ -311,9 +311,9 @@ parseBuffer() {
 			if( strcmp("admin", buffcopyparsed[3]) || strcmp("usr", buffcopyparsed[3]) )
 				createusr(buffcopyparsed[1], buffcopyparsed[2], buffcopyparsed[3]);
 			else
-				 printf("\nUser group must be 'admin' or 'usr'.");
+				 printf("\nError: User group must be 'admin' or 'usr'.");
 		} else
-				 printf("\nOnly admin users can create other users.");
+				 printf("\nError: Only admin users can create other users.");
 		isFront = 0;
 	}else if(strcmp("mkdir ", buffcopyparsed[0])){
 		mkDir(buffcopyparsed[1]);
@@ -337,7 +337,6 @@ parseBuffer() {
 		cd(buffcopyparsed[1]);/*rmDir*/
 		isFront = 0;
 	}else {
-
 		invalidcom = TRUE;
 		isFront = 0;
 	}

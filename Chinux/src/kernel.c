@@ -43,7 +43,7 @@ semItem * semaphoreTable;
 int semCount;
 
 /*for testing fifos*/
-#define MAX_FIZE_SIZE 100
+#define MAX_FIZE_SIZE 1000
 #define MAX_FIFO 100
 my_fdItem * myfd_table;
 int fileCount;
@@ -59,8 +59,13 @@ initializeSemaphoreTable(){
 /*for testing fifos*/
 int create_file(){
 	myfd_table[fileCount].fd = fileCount;/*cabeza*/
-	myfd_table[fileCount].file = malloc(sizeof(char)*MAX_FIZE_SIZE);
-	myfd_table[fileCount].curr_size =0;
+	iNode * node = insert_fifo("my_fifo",0,NULL);
+	/*myfd_table[fileCount].file = malloc(sizeof(char)*MAX_FIZE_SIZE);*/
+	myfd_table[fileCount].file = (char *)node->data.direct_blocks[0];
+	myfd_table[fileCount].curr_size = node->data.direct_blocks[1];
+	/*myfd_table[fileCount].curr_size=0;*/
+	printf("%d\n",myfd_table[fileCount].file );
+	printf("%d\n",node->data.direct_blocks[1]);
 	semItem * sem = malloc(sizeof(semItem));
 	sem->value = 0;
 	semget_in_kernel(sem);
@@ -491,8 +496,6 @@ void mkfifo_in_kernel(fifoStruct * param){
 }
 
 
-
-
 void
 semget_in_kernel(semItem * param){
 		if ( semCount == 20 ){
@@ -583,7 +586,15 @@ void int_79(size_t call, size_t param){
 	case CD_COM:
 		cd_in_kernel((char *)param);/*param == path*/
 		break;
+	case LINK_COM:
+		link_in_kernel((link_struct *)param);
+		break;
+	case CREAT_COM:
+		creat_in_kernel((creat_param *)param);
+		break;
 	}
+
+
 }
 
 void startTerminal(int pos)
@@ -627,11 +638,13 @@ void logUser(void)
 		block_process(CurrentPID);
 		scanf("%s", buffcopy);
 		for(i = 0; i < 100 && usr[i].usrID != 0 && usrNotFound; i++)
+		{
 			if(strcmp(usr[i].name, buffcopy))
 			{
 				usrNotFound = 0;
-				//strcopy(currentUsr.name, buffcopy);
+				//strcopy(userName, buffcopy, str_len(buffcopy));
 			}
+		}
 		usrName = 0;
 		printf("\n");
 		clearTerminalBuffer(currentTTY);
@@ -647,7 +660,10 @@ void logUser(void)
 			if(strcmp(usr[i - 1].password, buffcopy))
 			{
 				usrLoged = 1;
-				//strcopy(currentUsr.password, buffcopy);
+				//strcopy(currentUsr.password, buffcopy, str_len(buffcopy));
+				//strcopy(currentUsr.name, userName, str_len(userName));
+				currentUsr.usrID = usr[i - 1].usrID;
+				currentUsr.group = usr[i - 1].group;
 			}
 			else
 				printf("\nIncorrect password. Please try again");
@@ -663,7 +679,7 @@ void logUser(void)
 	terminals[1].PID = CreateProcessAt("Shell1", (int(*)(int, char**))shell, 1, 0, (char**)0, 0x400, 2, 1);
 	terminals[2].PID = CreateProcessAt("Shell2", (int(*)(int, char**))shell, 2, 0, (char**)0, 0x400, 2, 1);
 	terminals[3].PID = CreateProcessAt("Shell3", (int(*)(int, char**))shell, 3, 0, (char**)0, 0x400, 2, 1);
-	//do_close(fd);
+	do_close(fd);
 	//cd("..");
 	_Sti();
 	return;
@@ -682,8 +698,8 @@ void logout(int argc, char * argv[])
 
 void createusr(char * name, char * password, char * group)
 {
-	int i, fd;
-	user * usr, * aux;
+	int i, fd, length;
+	user * usr;
 	groupID gID;
 	fd = do_open("usersfile", 777, 777);
 	usr = malloc(sizeof(user) * 100);
@@ -691,25 +707,30 @@ void createusr(char * name, char * password, char * group)
 	for(i = 0; i < 100 && usr[i].usrID; i++)
 		if(strcmp(usr[i].name, name))
 		{
-			printf("User already exists.\n");
+			printf("Error: User already exists.\n");
 			return ;
 		}
 	if(i == 100)
 	{
-		printf("Too many users created.\n");
+		printf("Error: Too many users created.\n");
 		return ;
 	}
-	memcpy(usr[i].name, name, str_len(name));
-	memcpy(usr[i].password, password, str_len(password));
+	length = str_len(name);
+	name[length - 1] = 0;
+	memcpy(usr[i].name, name, length - 1);
+	length = str_len(password);
+	password[length - 1] = 0;
+	memcpy(usr[i].password, password, length - 1);
 	usr[i].usrID = ++usrID;
 	if(strcmp(group, "admin"))
 		usr[i].group = ADMIN;
 	else
 		usr[i].group = USR;
-	aux = malloc(sizeof(user) * 100);
-	write(fd, (void *)usr, sizeof(user));
-	
-	//close(fd);
+	do_close(fd);
+	rmDir("usersfile");
+	fd = do_creat("usersfile", 777);
+	write(fd, (void *)usr, sizeof(user) * 100);
+	do_close(fd);
 
 	return;	
 }
