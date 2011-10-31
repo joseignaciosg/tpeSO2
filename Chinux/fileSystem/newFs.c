@@ -875,7 +875,7 @@ int do_open(char * filename, int flags, int mode){
 		if ( (fd = search_for_inode(posible_file->iNode_number)) != -1){
 			return fd;
 		}else{
-			printf("Error opening file\n");
+			return insert_fd(posible_file->iNode_number);
 		}
 	}else
 	{
