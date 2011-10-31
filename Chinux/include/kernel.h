@@ -44,6 +44,8 @@ void end_process(void);
 void semget_in_kernel(semItem * param);
 void up_in_kernel(int key);
 void down_in_kernel(int key);
+void semrm_in_kernel(int key);
+
 
 
 /***	Module Defines	***/

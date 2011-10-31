@@ -53,6 +53,7 @@
 #define CD_COM 25
 #define CREAT_COM 26
 #define RM_FIFO 27
+#define SEM_RM 28
 
 
 #define TRUE 1

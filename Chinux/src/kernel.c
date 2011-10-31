@@ -82,7 +82,8 @@ int delete_fifo_fd(int fd){
 	}
 	fifo_table[fd].fd = -1;
 	fifo_table[fd].curr_size = 0;
-	fifo_table[fd].sem_key = -1;
+	/*semrm_in_kernel(fifo_table[fd].sem_key);*/
+	/*fifo_table[fd].sem_key = -1;*/
 	fifoCount--;
 	return 0;
 }
@@ -611,6 +612,13 @@ down_in_kernel(int key){
 	semaphoreTable[key].value--;
 }
 
+void semrm_in_kernel(int key){
+	if (delete_sem_key(key) == -1 ){
+		printf("Error deleting semaphore.\n");
+	}
+}
+
+
 
 
 
@@ -679,7 +687,11 @@ void int_79(size_t call, size_t param){
 	case RM_FIFO:
 		rmfifo_in_kernel((fifoStruct *)param);
 		break;
+	case SEM_RM:
+		semrm_in_kernel(param);
+		break;
 	}
+
 
 
 }
