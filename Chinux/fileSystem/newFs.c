@@ -19,7 +19,7 @@ int write_disk(int ata, int sector, void * msg, int count, int offset){
 	
 	return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
 	
-	/*int i;
+/*	int i;
 	char * buffer = (char *)calloc(512,128);
 	int cantsectors = (int)(count/512) + 1;
 
@@ -33,6 +33,7 @@ int write_disk(int ata, int sector, void * msg, int count, int offset){
 			_disk_write(0x1f0,(char*)(buffer),127,(i*128));
 		}	
 		int lastsectors = cantsectors - (128 * cant);
+		memcpy(buffer,msg+(i*(512*lastsectors)),512*lastsectors);
 		return _disk_write(0x1f0,(char*)(buffer),lastsectors,128*cant);
 
 	}*/
@@ -106,17 +107,30 @@ void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 	return;
 }
 
-void create_n_bytes( char * name , int size){
+void create_n_bytes( char * name ){
 	
-	char * buffer = malloc(size);
-	int i;
-	for( i = 0; i < size; i ++){
+	int size,fd,i,a;
+	size = 10485760;
+	int cant = size / (512*100);
+	
+	char * buffer = malloc(BLOCK_SIZE*100);
+	
+	printf("SIZE:%d\n",size);	
+	for( i = 0; i < (512*100); i++){
 		buffer[i] = '2';
-	}	
-	int fd = do_creat(name,888);
-	
-	write(fd,buffer,str_len(buffer));
+	}
+	buffer[i]='\0';
+
+	printf("len:%d\n",str_len(buffer));
+	fd = do_creat(name,777);
+	printf("cant:%d\n",cant);
+	for ( i = 0; i<cant;i++){
+		a = write(fd,buffer,str_len(buffer));
+		printf("i:%d,a:%d\n",i,a);
+	}
 	printf("Se escrbieron:%d\n",getsize(fd));
+	
+	close(fd);
 
 	return;
 	/*char * read_buffer = (char *)calloc(str_len(buffer),1);
@@ -272,7 +286,7 @@ int search_free_blocks(int quantityBlocks)
 	int i;
 	int count = 0;
 	int candidate = -1;
-	if ( superblock->freeBlocks == 0){
+	if ( superblock->freeBlocks < 100){
 		return NO_SPACE;	
 	}
 
@@ -300,8 +314,11 @@ int search_free_blocks(int quantityBlocks)
 
 	superblock->freeBlocks = superblock->freeBlocks - quantityBlocks;
 	superblock->usedBlocks = superblock->usedBlocks + quantityBlocks;
-
 	
+	printf("Cantidad de bloques libres:%d\n",superblock->freeBlocks);
+	
+	write_disk(0,BITMAPSECTOR,bitmap,BITMAP_SIZE,0);
+
 	return candidate;
 
 }
@@ -312,6 +329,10 @@ void free_used_blocks(int init_bit, int quantity, int mode){
 	for( i = init_bit; i < (init_bit + quantity); i++){
 		clear_bit(i,mode);
 	}
+
+	superblock->freeBlocks = superblock->freeBlocks + quantity;
+	superblock->usedBlocks = superblock->usedBlocks - quantity;
+
 	return;
 }
 
@@ -507,7 +528,7 @@ void insert_directory_entry(iNode * newDirectory, iNode * current, char * name){
 
 iNode * insert_file( char * name, int mode, iNode * current ){
 
-	//TODO: CRear el inodo de directorio con todas sus entradas.
+	
 	iNode * newFile = (iNode *)malloc(sizeof(iNode));
 	if( ( newFile = search_directory(name, current) ) != NULL){		
 		return NULL;
@@ -519,7 +540,7 @@ iNode * insert_file( char * name, int mode, iNode * current ){
 
 	return newFile;
 	//TODO: Actualizar el inodo actual para que tenga la informacion del nuevo.
-	//TODO: No chequea que no alla repetidos.
+	
 }
 
 iNode * insert_fifo( char * name, int size, iNode * current2 ){
@@ -908,7 +929,7 @@ int is_base_case( iNode * current ){
 int recursive_remove( iNode * current ){
 
 	int ret;
-	printf("removing %d\n", current->iNode_number);
+	//printf("removing %d\n", current->iNode_number);
 
 	if(current->gid < currentUsr.group)
 		return 1;
@@ -950,15 +971,24 @@ int recursive_remove( iNode * current ){
 int write_inode(iNode * inode, char * buf, int n){	
 		
 	int file_size = inode->size;
-	int newrequeried_blocks = inode->data.direct_blocks[1] + (int)(n/BLOCK_SIZE) + 1;
+	int posible_requeried = (int)((file_size+n)/BLOCK_SIZE) + 1;
+	int newrequeried_blocks,freeblock;
+	if ( posible_requeried > inode->data.direct_blocks[1] ){
+		newrequeried_blocks = posible_requeried;
+		freeblock = search_free_blocks(newrequeried_blocks);
+	}else{
+		freeblock = inode->data.direct_blocks[0];
+		newrequeried_blocks = inode->data.direct_blocks[1];
+	}
+	//int newrequeried_blocks = inode->data.direct_blocks[1] + (int)(inode->size/BLOCK_SIZE) + 1;
 	int i,lastblock;
 	int init_block = inode->data.direct_blocks[0]; 
 	int quantity = inode->data.direct_blocks[1];
 
-	int freeblock = search_free_blocks( newrequeried_blocks );
+	//int freeblock = search_free_blocks( newrequeried_blocks );
 	
 	//printf("WRITE!!\nFile_Size:%d\nrequiered:%d\ninit_block:%d\nquant:%d\nfreeblock:%d\n",file_size,newrequeried_blocks,init_block,quantity,freeblock);
-	if ( freeblock != -1 ){
+	if ( freeblock != -1 ){	
 		//LEO Y ARMO LA DATA	
 		char * buffer = (char *)malloc(quantity*512);
 		char * insert_buffer = (char *)malloc(newrequeried_blocks * 512);
@@ -1015,7 +1045,6 @@ int do_creat(char * filename, int mode){
 	int i;
 	iNode * ret;
 	if ( (ret  = insert_file(filename,mode,current)) == NULL){
-		printf("asd");
 		return -1;	
 	} 
 	int fd = insert_fd(ret->iNode_number);
@@ -1026,6 +1055,7 @@ int do_creat(char * filename, int mode){
 int do_open(char * filename, int flags, int mode){
 	
 	iNode * posible_file = search_directory(filename, current);
+
 	//printf("size:%d\n",posible_file->size);
 	int fd;	
 	if ( posible_file != NULL)
@@ -1033,6 +1063,9 @@ int do_open(char * filename, int flags, int mode){
 		if(posible_file->gid < currentUsr.group)
 			return -2;
 
+		if( posible_file->identifier == LINK ){
+			posible_file = fs_get_inode(posible_file->link);		
+		}		
 		if ( (fd = search_for_inode(posible_file->iNode_number)) != -1){
 			return fd;
 		}else{
@@ -1153,12 +1186,13 @@ void substr(char dest[], char src[], int offset, int len)
 
 
 int creat_in_kernel(creat_param * param){
-	printf("%s\n",param->filename);
+	
+	//printf("%s\n",param->filename);
 	char * filename = malloc(str_len(param->filename));
 	int mode = param->mode;
 	memcpy(filename,param->filename,str_len(filename));
 	/*do_creat(filename,mode);*/
-	return do_creat(filename,1);
+	return do_creat(filename,777);
 
 }
 
@@ -1179,11 +1213,21 @@ int close(int fd){
 	do_close(fd);
 }
 
-void touch_in_kernel( char * filename ){
-	int fd = do_creat(filename,888);
 
+void touch_in_kernel( char * filename ){
+	
+	int fd;
+	if ( (fd = do_creat(filename,777)) == -1){
+		printf("\nCreat error");
+	}else{
+		printf("\nFile created succesfully");
+	}
+	
+	return;
+/*
 	char * buffer = "HolaHolaHolaHolax";
 	char * read_buffer = (char *)calloc(str_len(buffer),1);
+	
 	write(fd,buffer,str_len(buffer));
 	read(fd,read_buffer,str_len(buffer));
 	char * buffer2 = " segunda";
@@ -1191,8 +1235,23 @@ void touch_in_kernel( char * filename ){
 	write(fd,buffer2,str_len(buffer) + str_len(buffer2));
 	read(fd,read_buffer2,str_len(buffer)+str_len(buffer2));
 	
-	printf("%s\n",read_buffer2);
+	printf("%s\n",read_buffer2);*/
 	
+}
+
+void writefile_in_kernel( char * name, char * buffer ){
+
+	int fd;
+	int lenght = str_len(name);
+	name[lenght -1] = '\0';
+	printf("Buffer:%s\n",buffer);
+	if ( (fd = do_open(name,1,777) ) == -1 ){
+		printf("File not exist");
+	}else{
+		write(fd,buffer,str_len(buffer));
+		printf("tam:%d\n",getsize(fd));
+	}
+	return;
 }
 
 int getsize(int filedescriptor){
@@ -1214,7 +1273,7 @@ void cat_in_kernel( char * filename ){
 		printf("File not exist\n");
 		return;
 	}
-	if ( getidentifier(fd) != FILE ){
+	if ( getidentifier(fd) != FILE && getidentifier(fd) != LINK ){
 		printf("Error: files only\n");
 	}else{
 		char * buffer = malloc(getsize(fd));
@@ -1229,6 +1288,7 @@ void cat_in_kernel( char * filename ){
 void link_in_kernel(link_struct * param){
 	char * path1 = param->path1;
 	char * path2 = param->path2;
+	
 	if ( strcmp("hola",path1) == 1){
 		printf("ENTRO\n");
 	}	
@@ -1272,6 +1332,64 @@ void link_in_kernel(link_struct * param){
 		
 		ls("");
 		copy_link_inode(path1_inode, link_node);
+		fs_insert_inode(link_node);
+	}
+	
+	return;
+}
+
+
+void links(char * path1, char * path2){
+	
+
+	
+	int path1_len = str_len(path1);
+	path1[path1_len-1] = '\0';
+		
+	int path2_len, i, index_file_name,quant_chars;
+	char * directory_path;
+	char * name;
+	iNode * path1_inode = current;
+	path1_inode = parser_path(path1, path1_inode);
+
+	//path1_inode = search_directory(path1,current);
+	
+	if ( path1_inode == NULL )
+	{
+		printf("Wrong name or path\n");
+	}
+
+	//Busco el primer / de derecha a izquierda para sacar el nombre de archivo
+	path2_len = str_len(path2);
+	for ( i = path2_len; i >= 0; i--){
+		if ( path2[i] == '/' ){
+			index_file_name = i;
+			break;
+		}
+	}
+	//Si encontro una /
+	if( i >= 0 ){
+		quant_chars = path2_len - (path2_len - index_file_name) + 1;
+		directory_path = malloc(quant_chars);
+		name = malloc(path2_len - quant_chars);
+		memcpy(directory_path,path2,quant_chars);
+		memcpy(name,path2+quant_chars,path2_len-quant_chars);
+		name[path2_len - quant_chars] = '\0';
+		directory_path[quant_chars-1] = '\0';		
+		
+		iNode * path2_inode = current;
+		path2_inode = parser_path(directory_path, path2_inode);
+		
+		iNode * link_node = insert_file(name,777,path2_inode);
+		copy_link_inode(path1_inode, link_node);
+	}else{
+	//Si no encontro una barra es el nombre de archivo en el current.
+		printf("ENTRO");
+		iNode * path2_inode = current;
+		iNode * link_node = insert_file(path2,2,path2_inode);
+		
+		copy_link_inode(path1_inode, link_node);
+		printf("ID:%d\n",link_node->identifier);
 		fs_insert_inode(link_node);
 	}
 	

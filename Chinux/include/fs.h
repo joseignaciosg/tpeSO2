@@ -58,7 +58,7 @@
 #define INODETABLESECTOR (INODEMAPSECTOR + (INODEMAP_SIZE/512) )
 #define BITMAP_SIZE 2048
 #define INODEMAP_SIZE	512
-#define DISK_SIZE 104857600 //100mb
+#define DISK_SIZE 104857600*5 //100mb
 #define INODETABLE_SIZE (INODEMAP_SIZE * 4)
 #define BITMAP 1
 #define INODEMAP 2
@@ -208,8 +208,14 @@ void insert_directory( char * name, iNode * current );
 void insert_directory_entry(iNode * newDirectory, iNode * current, char * name);
 void insert_fifo_entry(iNode * newFile, iNode * current, char * name);
 void substr(char dest[], char src[], int offset, int len);
-void create_n_bytes( char * name, int size );
+void create_n_bytes( char * name );
+
+void writefile_in_kernel( char * name, char * buffer );
 /* READ AND WRITE */
+
+
+//ELIMINAR
+void links(char * path1, char * path2);
 
 int do_creat(char * filename, int mode);
 int do_write(int fd, char * buf, int n);
