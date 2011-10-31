@@ -129,7 +129,6 @@ void create_n_bytes( char * name , int size){
 	printf("%s\n",read_buffer2);*/
 }
 
-
 void load_filesystem(){
 	read_disk(0,SUPERBLOCKSECTOR,superblock,BLOCK_SIZE,0);
 	read_disk(0,BITMAPSECTOR,bitmap,BITMAP_SIZE,0);
@@ -529,7 +528,9 @@ iNode * insert_fifo( char * name, int size, iNode * current2 ){
 	iNode * newFifo = (iNode *)malloc(sizeof(iNode));
 	/*if( ( newFifo = search_directory(name, current) ) != NULL){
 		return NULL;
-	}*/		
+	}	*/
+
+
 	newFifo =  fs_creat_inode(FIFO,1,size,NULL);
 	fs_insert_inode(newFifo);
 
@@ -1179,9 +1180,8 @@ int close(int fd){
 }
 
 void touch_in_kernel( char * filename ){
-	printf("\nEJECUTO");
 	int fd = do_creat(filename,888);
-	//printf("caca\n");
+
 	char * buffer = "HolaHolaHolaHolax";
 	char * read_buffer = (char *)calloc(str_len(buffer),1);
 	write(fd,buffer,str_len(buffer));
@@ -1211,16 +1211,9 @@ void cat_in_kernel( char * filename ){
 	
 	int fd;
 	if ( ( fd = do_open(filename,1,2) ) == -1){
-		printf("File not exist. puto\n");
+		printf("File not exist\n");
 		return;
 	}
-
-	if(fd == -2)
-	{
-		printf("\nCan not cat file %s. Admin permission required.", filename);
-		return;
-	}
-
 	if ( getidentifier(fd) != FILE ){
 		printf("Error: files only\n");
 	}else{

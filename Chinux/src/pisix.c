@@ -71,14 +71,24 @@ void getTerminalCurPos(int * curpos)
 	_int_79_caller(CURR_TTY,currtty);
 }*/
 
-int mkfifo( char  * name, int * fd)
+int mkfifo(  int * fd )
 {
 	fifoStruct * param = malloc(sizeof(fifoStruct));
-	strcopy(param->path,name, sizeof(name));
+	/*param->name = malloc(str_len(name));
+	memcpy(param->name,name,str_len(name));
+	printf("mkfifo: %s\n", param->name);*/
 	_int_79_caller(MK_FIFO,&param);
 	fd[0] = param->fd1;
 	fd[1] = param->fd2;
 }
+
+void rmfifo( int * fd ){
+	fifoStruct * param = malloc(sizeof(fifoStruct));
+	param->fd1 = fd[0];
+	param->fd2 = fd[1];
+	_int_79_caller(RM_FIFO,&param);
+}
+
 
 void semget(int * key, int initvalue, int * status){
 	semItem * param = malloc(sizeof(semItem));

@@ -60,7 +60,9 @@ void getTerminalSize(int * size);
  * */
 void getTerminalCurPos(int * curpos);
 
-int mkfifo( char  * name, int * fd);
+int mkfifo( int * fd);
+
+void rmfifo( int * fd);
 
 void semget(int * key, int initvalue, int * status);
 
