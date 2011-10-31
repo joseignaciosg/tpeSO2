@@ -17,6 +17,7 @@ extern user currentUsr;
 
 int write_disk(int ata, int sector, void * msg, int count, int offset){
 	
+	//sprintf("sector:%d\tcount:%d\n",sector,count);
 	return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
 	
 }
@@ -75,22 +76,24 @@ void create_n_bytes( char * name ){
 	
 	int size,fd,i,a;
 	size = 10485760;//10mb
-	int cant = size / (512*128);
+	int cant = size / (512);
 	
-	char * buffer = malloc(BLOCK_SIZE*128);
-	
+	char * buffer = malloc(BLOCK_SIZE);
+	fd = do_creat(name,777);
 	printf("SIZE:%d\n",size);	
-	for( i = 0; i < (512*128); i++){
+	
+		
+	for( i = 0; i < (512); i++){
 		buffer[i] = '2';
 	}
 	buffer[i]='\0';
 
 	printf("len:%d\n",str_len(buffer));
-	fd = do_creat(name,777);
+	
 	printf("cant:%d\n",cant);
 	for ( i = 0; i<cant;i++){
 		a = write(fd,buffer,str_len(buffer));
-		printf("i:%d,a:%d\n",i,a);
+		//printf("i:%d,a:%d\n",i,a);
 	}
 	printf("Se escrbieron:%d\n",getsize(fd));
 	
@@ -685,6 +688,7 @@ iNode * parser_path(char * path, iNode * posible_inode){
 
 void cd_in_kernel(char * path){
 
+
 	iNode * posible_inode = current;
 	posible_inode = parser_path(path, posible_inode);
 
@@ -694,9 +698,15 @@ void cd_in_kernel(char * path){
 		return ;
 	}
 
+
+	if (posible_inode->identifier == FILE ){
+		printf("\nDirectories Only");
+		return;
+	}
 	if ( posible_inode == NULL )
 	{
 		printf("\nWrong name or path");
+		return;
 	}else
 	{
 		current = posible_inode;
@@ -904,6 +914,7 @@ int write_inode(iNode * inode, char * buf, int n){
 }
 
 
+
 int read_inode(iNode * inode, char * buf, int n){
 	
 	int file_size = inode->size;
@@ -971,12 +982,15 @@ int do_open(char * filename, int flags, int mode){
 
 int do_write(int fd, char * buf, int n){
 	
+	//_Cli();
 	int inode_number = search_for_fd(fd);//search fd in inode;
 	if ( inode_number == -1){
 		return -1;
 	}
 	iNode * inode =	fs_get_inode(inode_number);
 	return write_inode(inode, buf,n);
+	//_Sti();	
+	//return 1;
 	
 }
 
@@ -1138,11 +1152,11 @@ void cat_in_kernel( char * filename ){
 	
 	int fd;
 	if ( ( fd = do_open(filename,1,2) ) == -1){
-		printf("File not exist\n");
+		printf("\nFile not exist\n");
 		return;
 	}
 	if ( getidentifier(fd) != FILE && getidentifier(fd) != LINK ){
-		printf("Error: files only\n");
+		printf("\nError: files only\n");
 	}else{
 		char * buffer = malloc(getsize(fd));
 		read(fd,buffer,-1);
