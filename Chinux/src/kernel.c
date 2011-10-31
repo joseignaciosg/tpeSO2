@@ -100,7 +100,8 @@ int create_fifo(char * name){
 	}
 	fifo_table[currfd].fd = currfd;/*cabeza*/
 	iNode * node = insert_fifo(name,0,NULL);
-	fifo_table[currfd].file = (char *)node->data.direct_blocks[0];
+	/*fifo_table[currfd].file = (char *)node->data.direct_blocks[0];*/
+	fifo_table[currfd].file = malloc(MAX_FIFO_SIZE);
 	fifo_table[currfd].curr_size = node->data.direct_blocks[1];
 	semItem * sem = malloc(sizeof(semItem));
 	sem->value = 0;
@@ -146,7 +147,6 @@ void read_fifo(int fd, char *buf, int n){
 		down_in_kernel(fifo_table[fd].sem_key);/*blocking*/
 	}
 	memcpy( buf, fifo_table[fd].file , n );
-
 	/*delete from file all the data read*/
 	auxbuf = malloc(fifo_table[fd].curr_size-n);
 	memcpy( fifo_table[fd].file, buf , fifo_table[fd].curr_size-n );
@@ -501,8 +501,6 @@ void mkfifo_in_kernel(fifoStruct * param){
 void rmfifo_in_kernel(fifoStruct * param){
 	rmDir("fifoa");
 	rmDir("fifob");
-	printf("%d",param->fd1);
-	printf("%d",param->fd2);
 	delete_fifo_fd(param->fd1);
 	delete_fifo_fd(param->fd2);
 }

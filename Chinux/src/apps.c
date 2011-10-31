@@ -118,7 +118,6 @@ void fifo_writer_test(int argc, char * argv[]){
 	write_fifo(fd[0],"you?    ",8);
 	read_fifo(fd[1],buff,9);
 	printf("fifo_writer receives: %s\n", buff);
-
 	rmfifo(fd);
 
 

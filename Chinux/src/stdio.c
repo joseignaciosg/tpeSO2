@@ -3,7 +3,7 @@
  *  stdio.c
  *  	Galindo, Jose Ignacio
  *  	Homovc, Federico
- *	Loreti, Nicolas
+ *		Loreti, Nicolas
  *		ITBA 2011
  *
  ***********************************/
