@@ -28,4 +28,4 @@ void down(int key);
 
 void mkDir(char * newName);
 
-
+void touch( char * filename );

@@ -108,3 +108,13 @@ void rm( char * path ){
 	_int_79_caller(RM_COM,path);
 }
 
+void touch( char * filename ){
+	_int_79_caller(TOUCH_COM,filename);
+}
+
+void cat( char * filename ){
+	_int_79_caller(CAT_COM,filename);
+}
+
+
+

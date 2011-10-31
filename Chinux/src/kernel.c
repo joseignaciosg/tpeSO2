@@ -574,6 +574,12 @@ void int_79(size_t call, size_t param){
 	case RM_COM:
 		rmDir((char *)param);/*param == path*/
 		break;
+	case TOUCH_COM:
+		touch_in_kernel((char *)param);/*param == filename*/
+		break;
+	case CAT_COM:
+		cat_in_kernel((char *)param);/*param == filename*/
+		break;
 	}
 }
 

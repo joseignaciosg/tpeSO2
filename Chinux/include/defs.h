@@ -42,6 +42,8 @@
 #define MK_DIR 19
 #define LS_COM 20
 #define RM_COM 21
+#define TOUCH_COM 22
+#define CAT_COM 23
 
 #define TRUE 1
 #define FALSE 0
