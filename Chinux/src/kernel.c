@@ -51,13 +51,17 @@ int fifoCount;
 void
 initializeSemaphoreTable(){
 	semaphoreTable = malloc(sizeof(semItem)*20); /* UP TO 20 semaphores */
-	semCount = 0;
 	fifo_table = malloc(sizeof(my_fdItem)*MAX_FIFO); /* UP TO MAX_FIFO tables */
 	int i;
 	for ( i=0; i<MAX_FIFO; i++ ){
 		fifo_table[i].fd = -1;
 	}
 	fifoCount = 0;
+	int j;
+	for ( j=0; j<20; j++ ){
+		semaphoreTable[j].key = -1;
+	}
+	semCount = 0;
 }
 
 int find_new_fifo_fd(){
@@ -553,6 +557,27 @@ void rmfifo_in_kernel(fifoStruct * param){
 	delete_fifo_fd(param->fd2);
 }
 
+int find_new_sem_key(){
+	if ( semCount == 20 ){
+		return -1;
+	}
+	int i;
+	for ( i=0; i<20; i++ ){
+		if (semaphoreTable[i].key == -1){
+			return i;
+		}
+	}
+}
+
+int delete_sem_key(int key){
+	if ( semaphoreTable[key].key == -1 ){
+		return -1;
+	}
+	semaphoreTable[key].key = -1;
+	semCount--;
+	return 0;
+}
+
 
 void
 semget_in_kernel(semItem * param){
@@ -560,10 +585,11 @@ semget_in_kernel(semItem * param){
 			param->status = -1; /*failed*/
 			return;
 		}
-		param->key = semCount;
+		param->key = find_new_sem_key();
 		param->status = 0; /*ok*/
 		param->blocked_proc_pid = -1; /*ok*/
-		semaphoreTable[semCount++] = (*param);
+		semaphoreTable[param->key] = (*param);
+		semCount++;
 }
 
 void
