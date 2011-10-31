@@ -412,9 +412,14 @@ void kill_in_kernel(int pid)
 	PROCESS * proc;
 	PROCESS * parent;
 	processNode * aux;
-	int i;
+	int i,j;
 
 	_Cli();
+	for (j=0; j<4 ; j++){
+		if( pid == terminals[j].PID ){
+			return;
+		}
+	}
 	if(pid == 0 || pid == logoutPID || pid == logPID)
 	{
 		_Sti();
