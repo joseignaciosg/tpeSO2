@@ -6,15 +6,23 @@
 int write_disk(int ata, int sector, void * msg, int count, int offset){
 	
 	return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
+	
 	/*int i;
+	char * buffer = (char *)calloc(512,128);
 	int cantsectors = (int)(count/512) + 1;
-	if ( cantsectors < 128 ){
+
+	if ( cantsectors <= 128 ){
 		return _disk_write(0x1f0, (char *)msg,count/512,sector+1);
 	}else{
-		for ( i = sector; i < cantsectors; i+=128 ){
-			_disk_write(0x1f0,(char*)(msg),127,i+1);
-		}
-		return _disk_write(0x1f0,(char*)(msg),cantsectors-(i-128),i-128);
+		int cant = cantsectors/128;
+		
+		for( i = 0; i < cant; i++){
+			memcpy(buffer,msg+(i*(512*128)),512*128);
+			_disk_write(0x1f0,(char*)(buffer),127,(i*128));
+		}	
+		int lastsectors = cantsectors - (128 * cant);
+		return _disk_write(0x1f0,(char*)(buffer),lastsectors,128*cant);
+
 	}*/
 }
 
@@ -45,15 +53,15 @@ void init_filesystem( char * filesystem_name, masterBootRecord * mbr){
 	write_disk(0,0,buffer,5120,0);
 	*/
 
-	write_disk(0, 0,mbr,BLOCK_SIZE,0);//BLOCK_SIZE
+	write_disk(0,MBRSECTOR,mbr,BLOCK_SIZE,0);//BLOCK_SIZE
 	
 	/* superBlock sector */
 	superblock->name = "Chinux";
 	superblock->blockSize = BLOCK_SIZE;
-	superblock->freeBlocks = 10000;//TODO:PONER LA CANTIDAD POSTA.
+	superblock->freeBlocks = DISK_SIZE/BLOCK_SIZE;//TODO:PONER LA CANTIDAD POSTA.
 	superblock->usedBlocks = 0;
 	superblock->root = NULL; 
-	write_disk(0,1,superblock,BLOCK_SIZE,0);
+	write_disk(0,SUPERBLOCKSECTOR,superblock,BLOCK_SIZE,0);
 
 	/* bitmap Sectors */
 	init_bitmap();
@@ -263,6 +271,7 @@ void free_used_blocks(int init_bit, int quantity, int mode){
  *
  */
 
+fs_creat_inode(FIFO,777,0,current)
 
 iNode * fs_creat_inode(int identifier, int mode, int size, iNode * current){
 	
@@ -279,9 +288,24 @@ void fs_init_inode( iNode * inode, int id, int md, int sz, iNode * current){
 	//inode->gid = session_gid;
 	inode->mode = md;
 	inode->size = sz;
-	
-	inode->data = *fs_init_dataStream(sz,id,inode->iNode_number,current);
+	if( id == FIFO ){
+		inode->data = *fs_init_fifoStream(sz,id,inode->iNode_number,current);	
+	}else{
+		inode->data = *fs_init_dataStream(sz,id,inode->iNode_number,current);
+
+	}
 	return;
+}
+
+dataStream * fs_init_fifoStream(int size,int id,int number,iNode * current){
+
+	dataStream * ret = (dataStream *)malloc(sizeof(dataStream));
+	char * pointer = (char *)malloc(size);
+	
+	ret->direct_blocks[0] = pointer;
+	ret->direct_blocks[1] = size;
+	
+	return ret;
 }
 
 dataStream * fs_init_dataStream(int size, int id, int number, iNode * current){
@@ -868,18 +892,23 @@ int do_creat(char * filename, int mode){
 int do_open(char * filename, int flags, int mode){
 	
 	iNode * posible_file = search_directory(filename, current);
-	printf("size:%d\n",posible_file->size);
+	//printf("size:%d\n",posible_file->size);
 	int fd;	
 	if ( posible_file != NULL)
 	{	
 		if ( (fd = search_for_inode(posible_file->iNode_number)) != -1){
 			return fd;
 		}else{
-			printf("Error opening file\n");
+			return insert_fd(posible_file->iNode_number);
 		}
 	}else
 	{
-		do_creat(filename,mode);		
+		if(flags == 0){
+			do_creat(filename,mode);
+		}else{
+			return -1;
+		}
+				
 		//TODO:Falta todo el tema de permisos y opciones para abrir.
 	}
 			
@@ -1030,11 +1059,21 @@ void touch_in_kernel( char * filename ){
 	
 }
 
+int getsize(int filedescriptor){
+
+	iNode * nodo = fs_get_inode(search_for_fd(filedescriptor));
+	return nodo->size;	
+
+}
 void cat_in_kernel( char * filename ){
-	int fd = open(filename,2,2);
-	char * buffer = malloc(14);	
+	int fd;
+	if ( ( fd = open(filename,1,2) ) == -1){
+		printf("File not exist\n");
+		return;	
+	}
+	char * buffer = malloc(getsize(fd));	
 	read(fd,buffer,-1);
-	printf("%s\n",buffer);
+	printf("\n%s",buffer);
 }
 
 //RM directorio creo un subdir, me meto y para volver pincha..WTF
