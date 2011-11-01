@@ -70,26 +70,92 @@ void getTerminalSize(int * size);
  * */
 void getTerminalCurPos(int * curpos);
 
+/*
+ * getTerminalCurPos
+ *
+ *descrip:
+ *#curpos: id of the terminal whose buffer is needed to be cleared
+ * */
 int mkfifo( int * fd);
 
+/*
+ * getTerminalCurPos
+ *
+ *descrip:
+ *#curpos: id of the terminal whose buffer is needed to be cleared
+ * */
 void rmfifo( int * fd);
 
+/*
+ * getTerminalCurPos
+ *
+ *descrip:
+ *#curpos: id of the terminal whose buffer is needed to be cleared
+ * */
 void semget(int * key, int initvalue, int * status);
 
+/*
+ * getTerminalCurPos
+ *
+ *descrip:
+ *#curpos: id of the terminal whose buffer is needed to be cleared
+ * */
 void up(int key);
 
+/*
+ * down
+ *
+ *descrip:
+ *#curpos: id of the terminal whose buffer is needed to be cleared
+ * */
 void down(int key);
 
+/*
+ * semrm
+ *
+ *descrip:
+ *#curpos: id of the terminal whose buffer is needed to be cleared
+ * */
 void semrm(int key); /*implement*/
 
+/*
+ * mkDir
+ *
+ *descrip:
+ *#curpos: id of the terminal whose buffer is needed to be cleared
+ * */
 void mkDir(char * newName);
 
+/*
+ * touch
+ *
+ *descrip:
+ *#curpos: id of the terminal whose buffer is needed to be cleared
+ * */
 void touch( char * filename );
 
+/*
+ * cat
+ *
+ *descrip:
+ *#curpos: id of the terminal whose buffer is needed to be cleared
+ * */
 void cat( char * filename );
 
+/*
+ * cd
+ *
+ *descrip:
+ *#curpos: id of the terminal whose buffer is needed to be cleared
+ * */
 void cd(char * path);
 
+/*
+ * link
+ *
+ *descrip:
+ *#curpos: id of the terminal whose buffer is needed to be cleared
+ * */
 void link(char * path1, char * path2);
 
 

@@ -93,7 +93,6 @@ int delete_fifo_fd(int fd){
 /*for testing fifos*/
 int create_fifo(char * name){
 	int currfd = find_new_fifo_fd();
-	/*printf("%d",currfd);*/
 	if (currfd == -1 ){
 		printf("No more fifos can be created.\n");
 		return -1;
