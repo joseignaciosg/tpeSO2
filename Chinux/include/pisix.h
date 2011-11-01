@@ -55,106 +55,109 @@ void clearTerminalBuffer( int ttyid);
 void waitpid(int pid);
 
 /*
- * clearTerminalBuffer
+ * getTerminalSize
  *
- *descrip: clears the terminal buffer
- *#ttyid: id of the terminal whose buffer is needed to be cleared
+ *descrip: gets the terminal buffer size
+ *#size: terminal buffer size
  * */
 void getTerminalSize(int * size);
 
 /*
  * getTerminalCurPos
  *
- *descrip:
- *#curpos: id of the terminal whose buffer is needed to be cleared
+ *descrip: gets the terminal current position
+ *#curpos: current position of terminal
  * */
 void getTerminalCurPos(int * curpos);
 
 /*
- * getTerminalCurPos
+ * mkfifo
  *
- *descrip:
- *#curpos: id of the terminal whose buffer is needed to be cleared
+ *descrip: creates a fifo
+ *#fd: vector of two ints for the fifo fd
  * */
 int mkfifo( int * fd);
 
 /*
- * getTerminalCurPos
+ * rmfifo
  *
- *descrip:
- *#curpos: id of the terminal whose buffer is needed to be cleared
+ *descrip:removes fifo
+ *#fd: vector of two ints for the fifo fd
  * */
 void rmfifo( int * fd);
 
 /*
- * getTerminalCurPos
+ * semget
  *
- *descrip:
- *#curpos: id of the terminal whose buffer is needed to be cleared
+ *descrip: gets an semaphore
+ *#key: semaphore key
+ *#initvalue: initial value
+ *#status: out status
  * */
 void semget(int * key, int initvalue, int * status);
 
 /*
- * getTerminalCurPos
+ * up
  *
- *descrip:
- *#curpos: id of the terminal whose buffer is needed to be cleared
+ *descrip: increases semaphore
+ *#key: semaphore key
  * */
 void up(int key);
 
 /*
  * down
  *
- *descrip:
- *#curpos: id of the terminal whose buffer is needed to be cleared
+ *descrip: decreases semaphore
+ *#key: semaphore key
  * */
 void down(int key);
 
 /*
  * semrm
  *
- *descrip:
- *#curpos: id of the terminal whose buffer is needed to be cleared
+ *descrip:removes semaphore
+ *#key: semaphore key
  * */
-void semrm(int key); /*implement*/
+void semrm(int key);
 
 /*
  * mkDir
  *
- *descrip:
- *#curpos: id of the terminal whose buffer is needed to be cleared
+ *descrip: creates a new directory
+ *#newName: directory name
  * */
 void mkDir(char * newName);
 
 /*
  * touch
  *
- *descrip:
- *#curpos: id of the terminal whose buffer is needed to be cleared
+ *descrip: creates an empty file
+ *#filename: name of the file
  * */
 void touch( char * filename );
 
 /*
  * cat
  *
- *descrip:
- *#curpos: id of the terminal whose buffer is needed to be cleared
+ *descrip: prints the content of a file
+ *#filename:name of the file
  * */
 void cat( char * filename );
 
 /*
  * cd
  *
- *descrip:
- *#curpos: id of the terminal whose buffer is needed to be cleared
+ *descrip: changes current dir
+ *#path: path to go
  * */
 void cd(char * path);
 
 /*
  * link
  *
- *descrip:
- *#curpos: id of the terminal whose buffer is needed to be cleared
+ *descrip: links a file
+ *#path1: path of the file
+ *#path2: path of the link
  * */
 void link(char * path1, char * path2);
 
